@@ -7458,11 +7458,11 @@ main {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="Problem-statement">Problem statement<a class="anchor-link" href="#Problem-statement">¶</a></h3><ul>
+<h3 id="Problem-statement">Problem statement<a class="anchor-link" href="#Problem-statement">¶</a></h3><p><img alt="profiles classification" src="figures/normalized_profiles_analyzis.png"/></p>
+<ul>
 <li>Classify a set of pressure profiles.<ul>
 <li>🟢 Green: normal  $\text{label}=1$</li>
-<li>🔴 Red: Tight $\text{label}=0$
-<img alt="profiles classification" src="figures/normalized_profiles_analyzis.png"/></li>
+<li>🔴 Red: Tight $\text{label}=0$</li>
 </ul>
 </li>
 </ul>
@@ -7476,37 +7476,27 @@ main {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="Exploration:-Reparameterization">Exploration: Reparameterization<a class="anchor-link" href="#Exploration:-Reparameterization">¶</a></h3><ul>
+<h3 id="Exploration:-Reparameterization">Exploration: Reparameterization<a class="anchor-link" href="#Exploration:-Reparameterization">¶</a></h3><p><img alt="profiles classification minus trend" src="figures/normalized_profiles_analyzis_minus_trend.png"/></p>
+<ul>
 <li>Remove the "identity trend"</li>
-<li>Maximum value of these curves looks like a good discriminator.
-<img alt="profiles classification minus trend" src="figures/normalized_profiles_analyzis_minus_trend.png"/></li>
+<li>Maximum value of these curves looks like a good discriminator.</li>
 </ul>
 </div>
 </div>
 </div>
-</div>
+</div></section><section>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="Exploration:-Handcrafted-featur">Exploration: Handcrafted featur<a class="anchor-link" href="#Exploration:-Handcrafted-featur">¶</a></h3><ul>
-<li>Remove the "identity trend"</li>
-<li>Maximum value of these curves looks like a good discriminator.
-<img alt="profiles classification" src="figures/histogram_of_features.png"/></li>
+<h3 id="Exploration:-Handcrafted-feature">Exploration: Handcrafted feature<a class="anchor-link" href="#Exploration:-Handcrafted-feature">¶</a></h3><p><img alt="profiles classification" src="figures/histogram_of_features.png"/></p>
+<ul>
 <li>Histogram of this handcrafted feature.</li>
+<li><em>Remove the "identity trend"</em></li>
+<li><em>Maximum value of these curves looks like a good discriminator.</em></li>
 </ul>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 </div>
 </div>
 </div>
@@ -7533,9 +7523,11 @@ require(
             controls: true,
             progress: true,
             history: true,
-            transition: "slide",
+            transition: "none",
             slideNumber: "",
-            plugins: [RevealNotes]
+            plugins: [RevealNotes],
+            width: 1920,
+            height: 1400
         });
 
         var update = function(event){
