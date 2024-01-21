@@ -7469,14 +7469,14 @@ main {
 </div>
 </div>
 </div>
-</div></section><section>
+</div></section></section><section><section>
 <div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="Exploration:-Reparameterization">Exploration: Reparameterization<a class="anchor-link" href="#Exploration:-Reparameterization">¶</a></h3><p><img alt="profiles classification minus trend" src="figures/normalized_profiles_analyzis_minus_trend.png"/></p>
+<h4 id="Exploration:-Reparameterization-and-handcrafted-features">Exploration: Reparameterization and handcrafted features<a class="anchor-link" href="#Exploration:-Reparameterization-and-handcrafted-features">¶</a></h4><p><img alt="profiles classification minus trend" src="figures/normalized_profiles_analyzis_minus_trend.png"/></p>
 <ul>
 <li>Remove the "identity trend"</li>
 <li>Maximum value of these curves looks like a good discriminator.</li>
@@ -7491,12 +7491,57 @@ main {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="Exploration:-Handcrafted-feature">Exploration: Handcrafted feature<a class="anchor-link" href="#Exploration:-Handcrafted-feature">¶</a></h3><p><img alt="profiles classification" src="figures/histogram_of_features.png"/></p>
+<h4 id="Exploration:-Handcrafted-feature">Exploration: Handcrafted feature<a class="anchor-link" href="#Exploration:-Handcrafted-feature">¶</a></h4><p><img alt="profiles classification" src="figures/histogram_of_features.png"/></p>
 <ul>
-<li>Histogram of this handcrafted feature.</li>
-<li><em>Remove the "identity trend"</em></li>
-<li><em>Maximum value of these curves looks like a good discriminator.</em></li>
+<li>Histogram of this handcrafted feature for the 2 labelled classes.</li>
+<li>A simple threshold around 0.7 could be enough to discriminate these 2 classes. Simple to compute, yet seems efficient.</li>
 </ul>
+</div>
+</div>
+</div>
+</div></section></section><section><section>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h4 id="Exploration:-PCA">Exploration: PCA<a class="anchor-link" href="#Exploration:-PCA">¶</a></h4><ul>
+<li>When we apply a principal component analyzis to the raw curves, we're able to see 2 clusters appear in the 2D eigen cofficient space.</li>
+<li>Each pressure curve made of 200 samples has been mapped to a single 2D vector.</li>
+<li>Knowing the labels, 2 obvious clusters appear.</li>
+</ul>
+<p><img alt="pca" src="figures/pca_curves.png"/></p>
+</div>
+</div>
+</div>
+</div></section><section>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h5 id="2D-Gaussian-Fitting">2D Gaussian Fitting<a class="anchor-link" href="#2D-Gaussian-Fitting">¶</a></h5><p><img alt="gaussian fit" src="figures/pca_curves_gmm_fit_1mode.png"/></p>
+<ul>
+<li>If we reproject the centroid back into the original pressure curve space, we can see that these curves are pretty representative of the 2 distributions in the original space.</li>
+<li>These are simple combinations of the 2 eigenvectors.</li>
+</ul>
+<p><img alt="gaussian fit reproj" src="figures/pca_curves_gmm_fit_reproj_1mode.png"/></p>
+<hr/>
+<p><em>Please note that <a href="https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html"><code>scikitlearn</code></a> applies a mean centering to perform PCA</em></p>
+</div>
+</div>
+</div>
+</div></section><section>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h5 id="Fitting-a-Gaussian-Mixture-Models">Fitting a Gaussian Mixture Models<a class="anchor-link" href="#Fitting-a-Gaussian-Mixture-Models">¶</a></h5><p><img alt="gaussian fit 2 modes" src="figures/pca_curves_gmm_fit.png"/></p>
+<p><img alt="gaussian fit 2 modes reproj" src="figures/pca_curves_gmm_fit_reproj.png"/></p>
 </div>
 </div>
 </div>
