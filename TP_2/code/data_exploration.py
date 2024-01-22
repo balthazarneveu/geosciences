@@ -36,3 +36,49 @@ def reinterpret_pressure(
     normalized = normalized * \
         (normalize_range[1] - normalize_range[0]) + normalize_range[0]
     return normalized
+
+
+def prepare_augmented_dataset(
+    pressure: List[np.ndarray],
+    labels:  List[int],
+    seed: int = 0,
+    ratio_noisy_label: float = 0.2,
+    ratio_tight: float = 0.4
+) -> Tuple[List[np.ndarray], List[int]]:
+    np.random.seed(seed)
+    labels_noisy = add_noisy_labels_to_dataset(pressure, labels, ratio_noisy_label=ratio_noisy_label)
+    pressure_imb, labels_imb = force_dataset_imbalance(pressure, labels_noisy, ratio_tight=ratio_tight)
+    return pressure_imb, labels_imb
+
+
+def add_noisy_labels_to_dataset(pressure: List[np.ndarray], labels:  List[int], ratio_noisy_label: float = 0.2):
+    index = np.random.choice(len(pressure), int(ratio_noisy_label*len(pressure)))
+    labels_noisy = np.copy(labels)
+    labels_noisy[index] = 1-labels_noisy[index]
+    return labels_noisy
+
+
+def get_dataset_balance(labs:  List[int], desc: str = "") -> None:
+    total_normal_samples = np.sum(np.array(labs) == 1)
+    print(f"{desc} Total normal samples: {total_normal_samples} = {total_normal_samples/len(labs):.1%}")
+    print(f"{desc} Total tight samples: {len(labs)-total_normal_samples} = {1-total_normal_samples/len(labs):.1%}")
+
+
+def force_dataset_imbalance(pressure: List[np.ndarray], labels:  List[int], ratio_tight: float = 0.4) -> Tuple[List[np.ndarray], List[int]]:
+    pretests_imbalanced = np.copy(pressure)
+    labels_imbalanced = np.copy(labels)
+
+    index_sort = np.argsort(labels_imbalanced)
+    labels_imbalanced = labels_imbalanced[index_sort]
+    pretests_imbalanced = pretests_imbalanced[index_sort]
+
+    num_tight = np.sum(labels_imbalanced == 0)
+    num_normal = np.sum(labels_imbalanced == 1)
+
+    # we would like num_tight/(num_tight+num_normal) = 0.4
+    rate = ratio_tight
+    num_skipped = num_tight - int(num_normal*rate/(1-rate))
+
+    pretests_imbalanced = pretests_imbalanced[num_skipped:]
+    labels_imbalanced = labels_imbalanced[num_skipped:]
+    return pretests_imbalanced, labels_imbalanced

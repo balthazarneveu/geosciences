@@ -14,7 +14,7 @@ def get_pressure_pca(pressure: List[np.ndarray]) -> Tuple[PCA, np.ndarray]:
     return pressure_pca, pca
 
 
-def plot_pressure_pca(pressure_pca: List[np.ndarray], labels: List[int]) -> None:
+def plot_pressure_pca(pressure_pca: List[np.ndarray], labels: List[int], desc: str = "Pressure Dataset with Labels") -> None:
     # Plot the first two principal components with labels
     plt.figure(figsize=(10, 6))
 
@@ -25,7 +25,7 @@ def plot_pressure_pca(pressure_pca: List[np.ndarray], labels: List[int]) -> None
 
     plt.xlabel('Principal Component 1')
     plt.ylabel('Principal Component 2')
-    plt.title('PCA of Pressure Dataset with Labels')
+    plt.title(f'PCA: {desc}')
     plt.legend()
     plt.grid(True)
     plt.show()
