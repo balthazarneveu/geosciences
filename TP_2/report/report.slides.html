@@ -7458,7 +7458,11 @@ main {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="Problem-statement">Problem statement<a class="anchor-link" href="#Problem-statement">¶</a></h3><p><img alt="profiles classification" src="figures/normalized_profiles_analyzis.png"/></p>
+<h3 id="Problem-statement">Problem statement<a class="anchor-link" href="#Problem-statement">¶</a></h3><ul>
+<li>Total normal samples: 85 = 35.1%</li>
+<li>Total tight samples: 157 = 64.9% (<em>dominant class</em>)</li>
+</ul>
+<p><img alt="profiles classification" src="figures/normalized_profiles_analyzis.png"/></p>
 <ul>
 <li>Classify a set of pressure profiles.<ul>
 <li>🟢 Green: normal  $\text{label}=1$</li>
@@ -7540,8 +7544,58 @@ main {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h5 id="Fitting-a-Gaussian-Mixture-Models">Fitting a Gaussian Mixture Models<a class="anchor-link" href="#Fitting-a-Gaussian-Mixture-Models">¶</a></h5><p><img alt="gaussian fit 2 modes" src="figures/pca_curves_gmm_fit.png"/></p>
+<h5 id="Fitting-a-2D-GMM-(Gaussian-Mixture-Model)">Fitting a 2D GMM (<em>Gaussian Mixture Model</em>)<a class="anchor-link" href="#Fitting-a-2D-GMM-(Gaussian-Mixture-Model)">¶</a></h5><p><img alt="gaussian fit 2 modes" src="figures/pca_curves_gmm_fit.png"/></p>
 <p><img alt="gaussian fit 2 modes reproj" src="figures/pca_curves_gmm_fit_reproj.png"/></p>
+</div>
+</div>
+</div>
+</div></section></section><section><section>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h1 id="Classification">Classification<a class="anchor-link" href="#Classification">¶</a></h1><ul>
+<li>Precision: classified a normal event as normal $\frac{tp}{tp+fp}$: <em>classifier ability not to label as positive a sample that is negative.</em> 💲</li>
+<li>Recall: classified  $\frac{tp}{tp+fn}$ : <em>the classifier ability to find all the positive samples.</em>. We want a recall of 100% here ❌ !</li>
+<li>Confusion matrix: $C_{i, j}$<ul>
+<li>$i$ groundtruth class</li>
+<li>$j$ predicted class</li>
+</ul>
+</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">Confusion matrix</th>
+<th>Prediction $j=0$ Tight</th>
+<th>Prediction $j=1$ Normal</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center"><strong>Groundtruth $i=0$ Tight</strong></td>
+<td>True Negative (groundtruth=tight, prediction=tight) ✔️</td>
+<td>False Positive (groundtruth=tight,prediction=normal) 💲</td>
+</tr>
+<tr>
+<td style="text-align:center"><strong>Groundtruth $i=1$ Normal</strong></td>
+<td>False Negative (groundtruth=normal, prediction=Tight) ❌</td>
+<td>True Positive (groundtruth=normal, prediction=normal) ✔️</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div></section></section><section><section>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 </div>
 </div>
 </div>
