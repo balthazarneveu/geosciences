@@ -41,11 +41,12 @@ def reinterpret_pressure(
 def prepare_augmented_dataset(
     pressure: List[np.ndarray],
     labels:  List[int],
-    seed: int = 0,
+    seed: int = None,
     ratio_noisy_label: float = 0.2,
     ratio_tight: float = 0.4
 ) -> Tuple[List[np.ndarray], List[int]]:
-    np.random.seed(seed)
+    if seed is not None:
+        np.random.seed(seed)
     labels_noisy = add_noisy_labels_to_dataset(pressure, labels, ratio_noisy_label=ratio_noisy_label)
     pressure_imb, labels_imb = force_dataset_imbalance(pressure, labels_noisy, ratio_tight=ratio_tight)
     return pressure_imb, labels_imb
@@ -82,3 +83,36 @@ def force_dataset_imbalance(pressure: List[np.ndarray], labels:  List[int], rati
     pretests_imbalanced = pretests_imbalanced[num_skipped:]
     labels_imbalanced = labels_imbalanced[num_skipped:]
     return pretests_imbalanced, labels_imbalanced
+
+
+def prepare_evaluation_indices(labels, eval_set_proportion, class_balance):
+    # Convert labels to a NumPy array for easier processing
+    labels = np.array(labels)
+    unique_classes = np.unique(labels)
+
+    # Number of samples per class in the evaluation set
+    samples_per_class = int(len(labels) * eval_set_proportion * class_balance)
+
+    # Collect indices for each class
+    indices = []
+    for class_label in unique_classes:
+        class_indices = np.where(labels == class_label)[0]
+        selected_indices = np.random.choice(class_indices, min(samples_per_class, len(class_indices)), replace=False)
+        indices.extend(selected_indices)
+
+    return indices
+
+
+def prepare_whole_dataset(data, labels):
+    # Now you can use evaluation_indices to extract the corresponding samples and labels from your dataset
+    indexes_testset = prepare_evaluation_indices(labels, 0.2, 0.5)
+    indexes_testset = np.array(indexes_testset)
+    assert len(np.unique(indexes_testset)) == len(
+        indexes_testset), "Same indexes appear multiple times in the evaluation set!"
+    test_data = data[indexes_testset]
+    test_label = labels[indexes_testset]
+
+    train_indices = np.setdiff1d(np.arange(len(labels)), indexes_testset)
+    train_data = data[train_indices]
+    train_label = labels[train_indices]
+    return train_data, test_data, train_label, test_label
