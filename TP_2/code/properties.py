@@ -1,0 +1,13 @@
+PRECISION = "precision"
+RECALL = "recall"
+CONF_MATRIX = "conf_matrix"
+CONFIG = "config"
+SEQUENCE_LENGTH = "sequence_length"
+RATIO_NOISY_LABEL = "ratio_noisy_label"
+CLASS_RATIO = "ratio_tight"
+CLASSIFIER = "classifier"
+DECISION_TREE = "decision_tree"
+DECISION_TREE_ON_PCA = "decision_tree_on_pca"
+CLASSIFIER_TYPES = [DECISION_TREE, DECISION_TREE_ON_PCA]
+TRAIN, EVAL = "train", "eval"
+RAW_RESULTS = "raw_results"
