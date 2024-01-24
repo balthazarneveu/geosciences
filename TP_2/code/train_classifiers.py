@@ -6,8 +6,11 @@
 import argparse
 from matplotlib import pyplot as plt
 from properties import (
-    PRECISION, RECALL, CONF_MATRIX, CONFIG, SEQUENCE_LENGTH, RATIO_NOISY_LABEL, CLASS_RATIO, CLASSIFIER, DECISION_TREE,
-    DECISION_TREE_ON_PCA, CLASSIFIER_TYPES, TRAIN, EVAL, RAW_RESULTS
+    PRECISION, RECALL, CONF_MATRIX, CONFIG, SEQUENCE_LENGTH, RATIO_NOISY_LABEL, CLASS_RATIO, CLASSIFIER,
+    DECISION_TREE,
+    DECISION_TREE_ON_PCA,
+    RIDGE,
+    CLASSIFIER_TYPES, TRAIN, EVAL, RAW_RESULTS
 )
 from data_exploration import prepare_whole_dataset, get_data, prepare_data, prepare_augmented_dataset
 import numpy as np
@@ -21,7 +24,7 @@ from sklearn.decomposition import PCA
 from sklearn.pipeline import Pipeline
 
 
-def main_train(output_path: Path = '__results.csv', sequence_lengths=range(20, 200, 10)) -> pd.DataFrame:
+def main_train(output_path: Path = '__results.csv', sequence_lengths=range(20, 200, 10), classifier_types=CLASSIFIER_TYPES) -> pd.DataFrame:
     data_dict = get_data()
     data, labels = prepare_data(data_dict)
     labels = np.array(labels)
@@ -47,7 +50,7 @@ def main_train(output_path: Path = '__results.csv', sequence_lengths=range(20, 2
     ratio_noisy_label = 0.2
     class_ratio = 0.4
     for classifier_type, sequence_length, class_ratio, ratio_noisy_label in product(
-            CLASSIFIER_TYPES, sequence_lengths, ratio_noisy_labels, class_ratios):
+            classifier_types, sequence_lengths, ratio_noisy_labels, class_ratios):
         current_id = get_id(classifier_type, sequence_length, class_ratio, ratio_noisy_label)
         # print(current_id)
         all_results[current_id] = {
@@ -62,17 +65,19 @@ def main_train(output_path: Path = '__results.csv', sequence_lengths=range(20, 2
     # print(all_results)
     for iter_noisy_dataset in range(10):
         train_data, train_label = prepare_augmented_dataset(
-            raw_train_data, raw_train_label, ratio_noisy_label=ratio_noisy_label, ratio_tight=class_ratio, seed=None)
+            raw_train_data.copy(), raw_train_label.copy(), ratio_noisy_label=ratio_noisy_label, ratio_tight=class_ratio, seed=None)
         # get_dataset_balance(train_label)
         # @TODO: Shuffle
         # classifier = RidgeClassifier()
         for sequence_length in sequence_lengths:  # could iterate here
             train_trim, test_trim = train_data[:, :sequence_length], test_data[:, :sequence_length]
-            for classifier_type in CLASSIFIER_TYPES:
+            for classifier_type in classifier_types:
                 if classifier_type == DECISION_TREE:
                     classifier = DecisionTreeClassifier()
                 elif classifier_type == DECISION_TREE_ON_PCA:
                     classifier = Pipeline([("pca", PCA(n_components=2)), ("decision_tree", DecisionTreeClassifier())])
+                elif classifier_type == RIDGE:
+                    classifier = RidgeClassifier()
                 else:
                     raise Exception("Unknown classifier type")
                 current_id = get_id(classifier_type, sequence_length, class_ratio, ratio_noisy_label)
@@ -193,5 +198,10 @@ if __name__ == '__main__':
         )
     else:
         df = pd.read_csv(output_path)
-    plot_curve_with_regard_to_trim(df, values_to_analyze=[EVAL+"_"+PRECISION, EVAL+"_"+RECALL])
+    plot_curve_with_regard_to_trim(df, values_to_analyze=[
+        EVAL+"_"+PRECISION,
+        TRAIN+"_"+PRECISION,
+        # EVAL+"_"+RECALL
+    ]
+    )
     analyze_bar_plot(df)
