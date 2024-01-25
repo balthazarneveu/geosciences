@@ -71,18 +71,35 @@ def main_train(output_path: Path = '__results.csv', sequence_lengths=range(20, 2
         # classifier = RidgeClassifier()
         for sequence_length in sequence_lengths:  # could iterate here
             train_trim, test_trim = train_data[:, :sequence_length], test_data[:, :sequence_length]
+            print(train_trim.shape, test_trim.shape)
             for classifier_type in classifier_types:
+                print(classifier_type)
+                feature_extractor = None
                 if classifier_type == DECISION_TREE:
                     classifier = DecisionTreeClassifier()
                 elif classifier_type == DECISION_TREE_ON_PCA:
                     classifier = Pipeline([("pca", PCA(n_components=2)), ("decision_tree", DecisionTreeClassifier())])
                 elif classifier_type == RIDGE:
                     classifier = RidgeClassifier()
+                elif classifier_type == "max_of_trend":
+                    classifier = DecisionTreeClassifier(max_depth=3)
+                    def max_trend_feature_extractor(press):
+                        trend = np.linspace(0, 1, press.shape[-1])
+                        press_minus_trend = press - np.array([trend])
+                        slope = press[:, 20:21]
+                        max_of_substracted_trend = np.max(press_minus_trend, axis=1, keepdims=True)
+                        return np.concatenate([slope, max_of_substracted_trend], axis=1)
+                    feature_extractor = max_trend_feature_extractor
                 else:
                     raise Exception("Unknown classifier type")
+                if feature_extractor is not None:
+                    train_trim_feat, test_trim_feat = feature_extractor(train_trim), feature_extractor(test_trim)
+                else:
+                    train_trim_feat, test_trim_feat = train_trim, test_trim
+                print(train_trim_feat.shape, test_trim_feat.shape)
                 current_id = get_id(classifier_type, sequence_length, class_ratio, ratio_noisy_label)
                 full_results, light_results = train_and_evaluate(
-                    classifier, train_trim, train_label, test_trim, test_label)
+                    classifier, train_trim_feat, train_label, test_trim_feat, test_label)
                 for mode in [TRAIN, EVAL]:
                     # print(current_id)
                     all_results[current_id][RAW_RESULTS][mode] = all_results[current_id][RAW_RESULTS].get(
@@ -126,13 +143,13 @@ def main_train(output_path: Path = '__results.csv', sequence_lengths=range(20, 2
     return df
 
 
-def analyze_bar_plot(df, value_to_plot=EVAL+"_"+PRECISION):
+def analyze_bar_plot(df, classifier_types, value_to_plot=EVAL+"_"+PRECISION):
     x = np.arange(len(df[SEQUENCE_LENGTH].unique()))  # the label locations for each sequence length
     width = 0.35  # the width of the bars
 
     fig, ax = plt.subplots()
 
-    for i, classifier in enumerate(CLASSIFIER_TYPES):
+    for i, classifier in enumerate(classifier_types):
         # Extract data for each classifier
         classifier_data = df[df[CLASSIFIER] == classifier]
 
@@ -161,12 +178,12 @@ def analyze_bar_plot(df, value_to_plot=EVAL+"_"+PRECISION):
     plt.show()
 
 
-def plot_curve_with_regard_to_trim(df, values_to_analyze=[EVAL+"_"+PRECISION]):
+def plot_curve_with_regard_to_trim(df, classifier_types, values_to_analyze=[EVAL+"_"+PRECISION]):
     # x = np.arange(len(df[SEQUENCE_LENGTH].unique()))  # the label locations for each sequence length
 
     fig, ax = plt.subplots()
 
-    for i, classifier in enumerate(CLASSIFIER_TYPES):
+    for i, classifier in enumerate(classifier_types):
         # Extract data for each classifier
         classifier_data = df[df[CLASSIFIER] == classifier]
 
@@ -174,7 +191,7 @@ def plot_curve_with_regard_to_trim(df, values_to_analyze=[EVAL+"_"+PRECISION]):
         classifier_data = classifier_data.sort_values(by=SEQUENCE_LENGTH)
         for value_to_analyze in values_to_analyze:
             ax.plot(classifier_data[SEQUENCE_LENGTH], classifier_data[value_to_analyze+"_avg"],
-                    label=classifier + " " + value_to_analyze)
+                    "-o", label=classifier + " " + value_to_analyze)
 
     plt.ylim(0, 1)
     ax.set_xlabel(SEQUENCE_LENGTH)
@@ -190,18 +207,23 @@ if __name__ == '__main__':
     argparser.add_argument('-f', '--force', action="store_true")
     args = argparser.parse_args()
     output_path = Path("__results.csv")
+    classifier_types = [DECISION_TREE,]
+    # classifier_types = ["max_of_trend",  DECISION_TREE_ON_PCA]
+    classifier_types = ["max_of_trend",]
     if not output_path.exists() or args.force:
         df = main_train(
             output_path=output_path,
             # sequence_lengths=range(20, 200, 10),
-            sequence_lengths=[8, 50, 200]
+            classifier_types=classifier_types,
+            sequence_lengths=[50, 100, 200]
         )
     else:
         df = pd.read_csv(output_path)
-    plot_curve_with_regard_to_trim(df, values_to_analyze=[
+    plot_curve_with_regard_to_trim(df, classifier_types, values_to_analyze=[
         EVAL+"_"+PRECISION,
         TRAIN+"_"+PRECISION,
+
         # EVAL+"_"+RECALL
     ]
     )
-    analyze_bar_plot(df)
+    analyze_bar_plot(df, classifier_types)
