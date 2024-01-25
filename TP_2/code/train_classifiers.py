@@ -24,35 +24,57 @@ from sklearn.decomposition import PCA
 from sklearn.pipeline import Pipeline
 
 
-def main_train(output_path: Path = '__results.csv', sequence_lengths=range(20, 200, 10), classifier_types=CLASSIFIER_TYPES) -> pd.DataFrame:
+def max_trend_feature_extractor(press, labels=None):
+    trend = np.linspace(0, 1, 200)[:press.shape[-1]]
+    press_minus_trend = press - np.array([trend])
+    if labels is not None:
+        plt.plot(press_minus_trend[labels == 0, :].T, "r-", alpha=0.1)
+        plt.plot(press_minus_trend[labels == 1, :].T, "g-", alpha=0.1)
+        plt.show()
+    slope = press[:, 20:21]
+    max_of_substracted_trend = np.max(press_minus_trend, axis=1, keepdims=True)
+    return np.concatenate([slope, max_of_substracted_trend], axis=1)
+
+
+def plot_dataset(data, labels, title="Full dataset"):
+    # plt.plot(data[labels == 0, :].T, "r-", label="tight", alpha=0.2)
+    # plt.plot(data[labels == 1, :].T, "g-", label="normal", alpha=0.2)
+    # plt.title(f"{title} labelled")
+    # plt.show()
+    all_feats = max_trend_feature_extractor(data, labels)
+    plt.plot(all_feats[labels == 0, 0],
+             all_feats[labels == 0, 1], "ro", label="tight")
+    plt.plot(all_feats[labels == 1, 0],
+             all_feats[labels == 1, 1], "go", label="normal")
+    plt.title(f"{title} labelled, hancrafted features")
+    plt.grid()
+    plt.show()
+
+
+def main_train(output_path: Path = '__results.csv',
+               sequence_lengths=range(20, 200, 10),
+               classifier_types=CLASSIFIER_TYPES,
+               debug_plots=True,
+               ratio_noisy_labels=[0],
+               class_ratios=[None],
+               ) -> pd.DataFrame:
     data_dict = get_data()
     data, labels = prepare_data(data_dict)
     labels = np.array(labels)
     data = np.array(data)
+    # if debug_plots:
     raw_train_data, test_data, raw_train_label, test_label = prepare_whole_dataset(data, labels)
-    # get_dataset_balance(test_label)
+    if debug_plots and False:
+        plot_dataset(data, labels, title="Full dataset")
+        plot_dataset(raw_train_data, raw_train_label, title="Raw training dataset")
+        plot_dataset(test_data, test_label, title="Test dataset")
+
     all_results = {}
-    # sequence_lengths = [50, 100, 200]
-    ratio_noisy_labels = [0.2]
-    class_ratios = [0.4]
-    # all_results = {
-    #     "id=...": {
-    #         CONFIG: {
-    #             SEQUENCE_LENGTH: 50, # 50, 100, 200
-    #             RATIO_NOISY_LABEL: 0.2,
-    #             CLASS_RATIO: 0.4,
-    #             CLASSIFIER: DECISION_TREE # 3 types
-    #         }
-    #         RAW_RESULTS : [{run1}, {run2}, {run3}, {run4}, {run5}]
-    #         RESULTS: {AVERAGE: {}, STD: {}}
-    #     }
-    # }
-    ratio_noisy_label = 0.2
-    class_ratio = 0.4
-    for classifier_type, sequence_length, class_ratio, ratio_noisy_label in product(
+
+    for classifier_type, sequence_length, ratio_noisy_label, class_ratio in product(
             classifier_types, sequence_lengths, ratio_noisy_labels, class_ratios):
         current_id = get_id(classifier_type, sequence_length, class_ratio, ratio_noisy_label)
-        # print(current_id)
+        print(current_id)
         all_results[current_id] = {
             CONFIG: {
                 SEQUENCE_LENGTH: sequence_length,
@@ -63,54 +85,85 @@ def main_train(output_path: Path = '__results.csv', sequence_lengths=range(20, 2
             RAW_RESULTS: {TRAIN: [], EVAL: []}
         }
     # print(all_results)
-    for iter_noisy_dataset in range(10):
-        train_data, train_label = prepare_augmented_dataset(
-            raw_train_data.copy(), raw_train_label.copy(), ratio_noisy_label=ratio_noisy_label, ratio_tight=class_ratio, seed=None)
-        # get_dataset_balance(train_label)
-        # @TODO: Shuffle
-        # classifier = RidgeClassifier()
-        for sequence_length in sequence_lengths:  # could iterate here
-            train_trim, test_trim = train_data[:, :sequence_length], test_data[:, :sequence_length]
-            print(train_trim.shape, test_trim.shape)
-            for classifier_type in classifier_types:
-                print(classifier_type)
-                feature_extractor = None
-                if classifier_type == DECISION_TREE:
-                    classifier = DecisionTreeClassifier()
-                elif classifier_type == DECISION_TREE_ON_PCA:
-                    classifier = Pipeline([("pca", PCA(n_components=2)), ("decision_tree", DecisionTreeClassifier())])
-                elif classifier_type == RIDGE:
-                    classifier = RidgeClassifier()
-                elif classifier_type == "max_of_trend":
-                    classifier = DecisionTreeClassifier(max_depth=3)
-                    def max_trend_feature_extractor(press):
-                        trend = np.linspace(0, 1, press.shape[-1])
-                        press_minus_trend = press - np.array([trend])
-                        slope = press[:, 20:21]
-                        max_of_substracted_trend = np.max(press_minus_trend, axis=1, keepdims=True)
-                        return np.concatenate([slope, max_of_substracted_trend], axis=1)
-                    feature_extractor = max_trend_feature_extractor
-                else:
-                    raise Exception("Unknown classifier type")
-                if feature_extractor is not None:
-                    train_trim_feat, test_trim_feat = feature_extractor(train_trim), feature_extractor(test_trim)
-                else:
-                    train_trim_feat, test_trim_feat = train_trim, test_trim
-                print(train_trim_feat.shape, test_trim_feat.shape)
-                current_id = get_id(classifier_type, sequence_length, class_ratio, ratio_noisy_label)
-                full_results, light_results = train_and_evaluate(
-                    classifier, train_trim_feat, train_label, test_trim_feat, test_label)
-                for mode in [TRAIN, EVAL]:
-                    # print(current_id)
-                    all_results[current_id][RAW_RESULTS][mode] = all_results[current_id][RAW_RESULTS].get(
-                        mode, []) + [light_results[mode]]
+    for ratio_noisy_label, class_ratio in product(ratio_noisy_labels, class_ratios):
+        for iter_noisy_dataset in range(10):
+            # ratio_noisy_label = 0.2
+            # ratio_noisy_label = 0
+            # class_ratio = 0.4
+            # ratio_noisy_label = 0
+            # class_ratio = None
+
+            # ratio_noisy_label = 0.05  # correct
+            # ratio_noisy_label = 0
+            # class_ratio = None
+            # class_ratio = 0.4
+
+            train_data, train_label = prepare_augmented_dataset(
+                raw_train_data.copy(), raw_train_label.copy(),
+                ratio_noisy_label=ratio_noisy_label,
+                ratio_tight=class_ratio,
+                # ratio_tight=0.5,
+                seed=None
+            )
+            if debug_plots and iter_noisy_dataset == 0 and False:
+                plot_dataset(train_data, train_label, title="Augmented training dataset")
+            # train_data, train_label = raw_train_data.copy(), raw_train_label.copy()
+            # get_dataset_balance(train_label)
+            # @TODO: Shuffle
+            # classifier = RidgeClassifier()
+            for sequence_length in sequence_lengths:  # could iterate here
+                train_trim, test_trim = train_data[:, :sequence_length], test_data[:, :sequence_length]
+                for classifier_type in classifier_types:
+
+                    feature_extractor = None
+                    if classifier_type == DECISION_TREE:
+                        classifier = DecisionTreeClassifier()
+                    elif classifier_type == DECISION_TREE_ON_PCA:
+                        classifier = Pipeline([("pca", PCA(n_components=2)),
+                                              ("decision_tree", DecisionTreeClassifier(max_depth=1))])
+                    elif classifier_type == RIDGE:
+                        classifier = RidgeClassifier()
+                    elif classifier_type == "max_of_trend":
+                        classifier = DecisionTreeClassifier(max_depth=1)
+                        feature_extractor = max_trend_feature_extractor
+                    else:
+                        raise Exception("Unknown classifier type")
+
+                    if feature_extractor is not None:
+                        train_trim_feat, test_trim_feat = feature_extractor(train_trim), feature_extractor(test_trim)
+                        # plt.plot(train_trim_feat[train_label == 0, 0],
+                        #          train_trim_feat[train_label == 0, 1], "ro", label="tight")
+                        # plt.plot(train_trim_feat[train_label == 1, 0],
+                        #          train_trim_feat[train_label == 1, 1], "go", label="normal")
+                        # plt.title("shuffled data")
+                        # plt.show()
+                    else:
+                        train_trim_feat, test_trim_feat = train_trim, test_trim
+                    current_id = get_id(classifier_type, sequence_length, class_ratio, ratio_noisy_label)
+                    full_results, light_results, classifier = train_and_evaluate(
+                        classifier, train_trim_feat, train_label, test_trim_feat, test_label)
+                    if classifier_type == "max_of_trend" and debug_plots and iter_noisy_dataset == 0:
+                        # print(classifier)
+                        from sklearn import tree
+                        print(classifier_type, light_results)
+                        tree.plot_tree(classifier)
+                        plt.show()
+                        plt.plot(train_trim_feat[train_label == 0, 0],
+                                 train_trim_feat[train_label == 0, 1], "ro", label="tight")
+                        plt.plot(train_trim_feat[train_label == 1, 0],
+                                 train_trim_feat[train_label == 1, 1], "go", label="normal")
+                        plt.title("shuffled data")
+                        plt.show()
+                    for mode in [TRAIN, EVAL]:
+                        # print(current_id)
+                        all_results[current_id][RAW_RESULTS][mode] = all_results[current_id][RAW_RESULTS].get(
+                            mode, []) + [light_results[mode]]
         # print(light_results['eval']['precision'], light_results['eval']['recall'])
         # print(light_results['eval']['conf_matrix'][1, 0])
         # evaluate(classifier, test_data, test_label)
     # stats = {}
     all_stats = []
     for current_id, value in all_results.items():
-
         if len(all_results[current_id][RAW_RESULTS][EVAL]) == 0:
             # print('SKIP!!!!')
             continue
@@ -208,14 +261,18 @@ if __name__ == '__main__':
     args = argparser.parse_args()
     output_path = Path("__results.csv")
     classifier_types = [DECISION_TREE,]
+    sequence_lengths = [50, 100, 200]
     # classifier_types = ["max_of_trend",  DECISION_TREE_ON_PCA]
-    classifier_types = ["max_of_trend",]
+    # classifier_types = ["max_of_trend", DECISION_TREE_ON_PCA]
+    classifier_types = [DECISION_TREE_ON_PCA,]
+    sequence_lengths = [30, 100, 200]
     if not output_path.exists() or args.force:
         df = main_train(
             output_path=output_path,
             # sequence_lengths=range(20, 200, 10),
             classifier_types=classifier_types,
-            sequence_lengths=[50, 100, 200]
+            sequence_lengths=sequence_lengths,
+            class_ratios=[0.3]
         )
     else:
         df = pd.read_csv(output_path)

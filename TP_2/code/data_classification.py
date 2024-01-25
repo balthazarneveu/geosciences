@@ -20,7 +20,7 @@ def train_and_evaluate(classifier, train_data, train_label, test_data, test_labe
         TRAIN: light_train,
         EVAL: light_test
     }
-    return full_results, light_results
+    return full_results, light_results, classifier
 
 
 def evaluate(classifier, test_data, test_label, debug=False) -> dict:
