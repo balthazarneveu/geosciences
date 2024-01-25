@@ -28,9 +28,7 @@ def evaluate(classifier, test_data, test_label, debug=False) -> dict:
     precision = precision_score(test_label, predicted_labels, average='binary')
     recall = recall_score(test_label, predicted_labels, average='binary')
     accuracy = accuracy_score(test_label, predicted_labels)
-    conf_matrix = confusion_matrix(test_label, predicted_labels,
-                                   normalize='all',
-                                   )
+    conf_matrix = confusion_matrix(test_label, predicted_labels, normalize='all')
 
     # Print the results
     if debug:

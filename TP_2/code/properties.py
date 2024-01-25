@@ -12,6 +12,7 @@ CLASSIFIER = "classifier"
 DECISION_TREE = "decision_tree"
 DECISION_TREE_ON_PCA = "decision_tree_on_pca"
 RIDGE = "ridge"
+HANDCRAFTED = "handcrafted"
 CLASSIFIER_TYPES = [DECISION_TREE, DECISION_TREE_ON_PCA, RIDGE]
 TRAIN, EVAL = "train", "eval"
 RAW_RESULTS = "raw_results"
