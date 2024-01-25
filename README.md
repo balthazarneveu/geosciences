@@ -4,6 +4,7 @@
 
 # :test_tube: [Lab reports](https://balthazarneveu.github.io/geosciences/)
 - [TP1: marker detection code](/TP_1/TP1_Markers_students.ipynb)
+- [TP2: pressure tests classification](/TP_2/code/TP_2.ipynb)
 
 # :scroll: Project
-TBD
+-
