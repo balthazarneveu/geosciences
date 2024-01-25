@@ -47,8 +47,16 @@ def prepare_augmented_dataset(
 ) -> Tuple[List[np.ndarray], List[int]]:
     if seed is not None:
         np.random.seed(seed)
-    labels_noisy = add_noisy_labels_to_dataset(pressure, labels, ratio_noisy_label=ratio_noisy_label)
-    pressure_imb, labels_imb = force_dataset_imbalance(pressure, labels_noisy, ratio_tight=ratio_tight)
+    if ratio_noisy_label == 0:
+        labels_noisy = np.copy(labels)
+    else:
+        labels_noisy = add_noisy_labels_to_dataset(pressure, labels, ratio_noisy_label=ratio_noisy_label)
+    get_dataset_balance(labels_noisy, desc="Original")
+    if ratio_tight is not None:
+        pressure_imb, labels_imb = force_dataset_imbalance(pressure, labels_noisy, ratio_tight=ratio_tight)
+        get_dataset_balance(labels_imb, desc="Imbalanced")
+    else:
+        pressure_imb, labels_imb = pressure, labels_noisy
     return pressure_imb, labels_imb
 
 
@@ -76,9 +84,9 @@ def force_dataset_imbalance(pressure: List[np.ndarray], labels:  List[int], rati
     num_tight = np.sum(labels_imbalanced == 0)
     num_normal = np.sum(labels_imbalanced == 1)
 
-    # we would like num_tight/(num_tight+num_normal) = 0.4
-    rate = ratio_tight
-    num_skipped = num_tight - int(num_normal*rate/(1-rate))
+    # we would like num_tight/(num_tight+num_normal) = ratio_tight
+    num_tight_final = ratio_tight * num_normal / (1 - ratio_tight)
+    num_skipped = num_tight - int(num_tight_final)
 
     pretests_imbalanced = pretests_imbalanced[num_skipped:]
     labels_imbalanced = labels_imbalanced[num_skipped:]
