@@ -1,6 +1,6 @@
 import numpy as np
 
-from sklearn.metrics import precision_score, recall_score, confusion_matrix
+from sklearn.metrics import precision_score, recall_score, accuracy_score, confusion_matrix
 from itertools import product
 import pandas as pd
 from properties import (
@@ -25,16 +25,11 @@ def train_and_evaluate(classifier, train_data, train_label, test_data, test_labe
 
 def evaluate(classifier, test_data, test_label, debug=False) -> dict:
     predicted_labels = classifier.predict(test_data)
-
-    # Calculate Precision
-    precision = precision_score(test_label, predicted_labels, average='binary')  # Change average as per your need
-
-    # Calculate Recall
-    recall = recall_score(test_label, predicted_labels, average='binary')  # Change average as per your need
-
-    # Generate the Confusion Matrix
+    precision = precision_score(test_label, predicted_labels, average='binary')
+    recall = recall_score(test_label, predicted_labels, average='binary')
+    accuracy = accuracy_score(test_label, predicted_labels)
     conf_matrix = confusion_matrix(test_label, predicted_labels,
-                                   # normalize='all',
+                                   normalize='all',
                                    )
 
     # Print the results
@@ -43,6 +38,7 @@ def evaluate(classifier, test_data, test_label, debug=False) -> dict:
     full_results = dict(
         precision=precision,
         recall=recall,
+        accuracy=accuracy,
         conf_matrix=conf_matrix,
         classifier=classifier,
         predicted_labels=predicted_labels
@@ -50,7 +46,10 @@ def evaluate(classifier, test_data, test_label, debug=False) -> dict:
     light_results = dict(
         precision=precision,
         recall=recall,
+        accuracy=accuracy,
         conf_matrix=conf_matrix,
+        false_negative=conf_matrix[1, 0],
+        false_positive=conf_matrix[0, 1],
     )
     return full_results, light_results
 

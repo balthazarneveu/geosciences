@@ -6,7 +6,9 @@
 import argparse
 from matplotlib import pyplot as plt
 from properties import (
-    PRECISION, RECALL, CONF_MATRIX, CONFIG, SEQUENCE_LENGTH, RATIO_NOISY_LABEL, CLASS_RATIO, CLASSIFIER,
+    PRECISION, RECALL, ACCURACY,
+    FALSE_NEGATIVE, FALSE_POSITIVE,
+    CONF_MATRIX, CONFIG, SEQUENCE_LENGTH, RATIO_NOISY_LABEL, CLASS_RATIO, CLASSIFIER,
     DECISION_TREE,
     DECISION_TREE_ON_PCA,
     RIDGE,
@@ -87,22 +89,10 @@ def main_train(output_path: Path = '__results.csv',
     # print(all_results)
     for ratio_noisy_label, class_ratio in product(ratio_noisy_labels, class_ratios):
         for iter_noisy_dataset in range(10):
-            # ratio_noisy_label = 0.2
-            # ratio_noisy_label = 0
-            # class_ratio = 0.4
-            # ratio_noisy_label = 0
-            # class_ratio = None
-
-            # ratio_noisy_label = 0.05  # correct
-            # ratio_noisy_label = 0
-            # class_ratio = None
-            # class_ratio = 0.4
-
             train_data, train_label = prepare_augmented_dataset(
                 raw_train_data.copy(), raw_train_label.copy(),
                 ratio_noisy_label=ratio_noisy_label,
                 ratio_tight=class_ratio,
-                # ratio_tight=0.5,
                 seed=None
             )
             if debug_plots and iter_noisy_dataset == 0 and False:
@@ -180,15 +170,26 @@ def main_train(output_path: Path = '__results.csv',
 
             df = pd.DataFrame(data_serie)
             # print(df.head())
+            accuracy = df.accuracy.mean()
+            accuracy_std = df.accuracy.std()
             precision = df.precision.mean()
             precision_std = df.precision.std()
             recall = df.recall.mean()
             recall_std = df.recall.std()
+            false_negative = df.false_negative.mean()
+            false_negative_std = df.false_negative.std()
+            false_positive = df.false_positive.mean()
+            false_positive_std = df.false_positive.std()
+            stat_dict[mode+"_"+ACCURACY+"_avg"] = accuracy
+            stat_dict[mode+"_"+ACCURACY+"_std"] = accuracy_std
             stat_dict[mode+"_"+PRECISION+"_avg"] = precision
             stat_dict[mode+"_"+PRECISION+"_std"] = precision_std
             stat_dict[mode+"_"+RECALL+"_avg"] = recall
             stat_dict[mode+"_"+RECALL+"_std"] = recall_std
-            # print(mode, all_results[current_id][CONFIG], precision, precision_std, recall, recall_std)
+            stat_dict[mode+"_"+FALSE_NEGATIVE+"_avg"] = false_negative
+            stat_dict[mode+"_"+FALSE_NEGATIVE+"_std"] = false_negative_std
+            stat_dict[mode+"_"+FALSE_POSITIVE+"_avg"] = false_positive
+            stat_dict[mode+"_"+FALSE_POSITIVE+"_std"] = false_positive_std
         all_stats.append(stat_dict)
     # SAVE DICT!
     df = pd.DataFrame(all_stats)
@@ -196,42 +197,30 @@ def main_train(output_path: Path = '__results.csv',
     return df
 
 
-def analyze_bar_plot(df, classifier_types, value_to_plot=EVAL+"_"+PRECISION):
-    x = np.arange(len(df[SEQUENCE_LENGTH].unique()))  # the label locations for each sequence length
-    width = 0.35  # the width of the bars
-
+def analyze_bar_plot(df, classifier_types, value_to_plot=EVAL+"_"+PRECISION, absciss_key=SEQUENCE_LENGTH):
+    x = np.arange(len(df[absciss_key].unique()))  # the label locations for each sequence length
+    width = 0.2  # the width of the bars
     fig, ax = plt.subplots()
-
     for i, classifier in enumerate(classifier_types):
-        # Extract data for each classifier
         classifier_data = df[df[CLASSIFIER] == classifier]
-
-        # Ensure the data is sorted by SEQUENCE_LENGTH and aligned with x ticks
-        classifier_data = classifier_data.sort_values(by=SEQUENCE_LENGTH)
-
-        # Calculate offset for grouped bar chart
+        classifier_data = classifier_data.sort_values(by=absciss_key)
         offset = width * i
-
-        # Create bars for this classifier
         rects = ax.bar(x + offset, classifier_data[value_to_plot+"_avg"],
                        width, yerr=classifier_data[value_to_plot+"_std"], label=classifier)
 
-        # Add labels to the bars
         ax.bar_label(rects, padding=3)
     plt.ylim(0, 1)
     # Add some text for labels, title and custom x-axis tick labels, etc.
     ax.set_ylabel(value_to_plot+"_avg")
     ax.set_title('Classifier Precision by Sequence Length')
-    ax.set_xticks(x + width / 2, df[SEQUENCE_LENGTH].unique())
+    ax.set_xticks(x + width / 2, df[absciss_key].unique())
     ax.legend()
-
-    # Optionally, set the y-axis limit if needed
-    # ax.set_ylim(0, max_value)
+    plt.grid()
 
     plt.show()
 
 
-def plot_curve_with_regard_to_trim(df, classifier_types, values_to_analyze=[EVAL+"_"+PRECISION]):
+def plot_curve_with_regard_to_study(df, classifier_types, values_to_analyze=[EVAL+"_"+PRECISION], absciss_key=SEQUENCE_LENGTH):
     # x = np.arange(len(df[SEQUENCE_LENGTH].unique()))  # the label locations for each sequence length
 
     fig, ax = plt.subplots()
@@ -241,46 +230,82 @@ def plot_curve_with_regard_to_trim(df, classifier_types, values_to_analyze=[EVAL
         classifier_data = df[df[CLASSIFIER] == classifier]
 
         # Ensure the data is sorted by SEQUENCE_LENGTH and aligned with x ticks
-        classifier_data = classifier_data.sort_values(by=SEQUENCE_LENGTH)
+        classifier_data = classifier_data.sort_values(by=absciss_key)
         for value_to_analyze in values_to_analyze:
-            ax.plot(classifier_data[SEQUENCE_LENGTH], classifier_data[value_to_analyze+"_avg"],
+            print(classifier_data[absciss_key])
+            ax.plot(classifier_data[absciss_key], classifier_data[value_to_analyze+"_avg"],
                     "-o", label=classifier + " " + value_to_analyze)
 
     plt.ylim(0, 1)
-    ax.set_xlabel(SEQUENCE_LENGTH)
+    ax.set_xlabel(absciss_key)
     # ax.set_ylabel(value_to_analyze)
-    ax.set_title('Classifier Precision by Sequence Length')
+    ax.set_title(f'Classifier performances by {absciss_key}')
     ax.legend()
-
+    plt.grid()
     plt.show()
 
+
+ALL_CONFIGS = {
+    "sequence_lengths_study": dict(
+        sequence_lengths=[50, 100, 200],
+        classifier_types=[DECISION_TREE_ON_PCA, RIDGE, DECISION_TREE],
+        class_ratios=[0.5],
+        ratio_noisy_labels=[0],
+        picked_study=SEQUENCE_LENGTH
+    ),
+    "noisy_labels_study": dict(
+        sequence_lengths=[200],
+        classifier_types=[DECISION_TREE_ON_PCA,],
+        class_ratios=[0.5],
+        ratio_noisy_labels=[0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.15, 0.2],
+        picked_study=RATIO_NOISY_LABEL
+    ),
+}
 
 if __name__ == '__main__':
     argparser = argparse.ArgumentParser()
     argparser.add_argument('-f', '--force', action="store_true")
     args = argparser.parse_args()
-    output_path = Path("__results.csv")
-    classifier_types = [DECISION_TREE,]
-    sequence_lengths = [50, 100, 200]
-    # classifier_types = ["max_of_trend",  DECISION_TREE_ON_PCA]
-    # classifier_types = ["max_of_trend", DECISION_TREE_ON_PCA]
-    classifier_types = [DECISION_TREE_ON_PCA,]
-    sequence_lengths = [30, 100, 200]
+    # chosen_configuration = "noisy_labels_study"
+    chosen_configuration = "sequence_lengths_study"
+    config = ALL_CONFIGS[chosen_configuration]
+    classifier_types = config["classifier_types"]
+    sequence_lengths = config["sequence_lengths"]
+    class_ratios = config["class_ratios"]
+    ratio_noisy_labels = config["ratio_noisy_labels"]
+    picked_study = config["picked_study"]
+    output_path = Path(f"__results_{chosen_configuration}.csv")
     if not output_path.exists() or args.force:
         df = main_train(
             output_path=output_path,
-            # sequence_lengths=range(20, 200, 10),
             classifier_types=classifier_types,
             sequence_lengths=sequence_lengths,
-            class_ratios=[0.3]
+            class_ratios=class_ratios,
+            ratio_noisy_labels=ratio_noisy_labels
         )
     else:
         df = pd.read_csv(output_path)
-    plot_curve_with_regard_to_trim(df, classifier_types, values_to_analyze=[
-        EVAL+"_"+PRECISION,
-        TRAIN+"_"+PRECISION,
+    analyze_bar_plot(
+        df, classifier_types,
+        value_to_plot=EVAL+"_"+FALSE_NEGATIVE,
+        absciss_key=picked_study
+    )
+    
+    plot_curve_with_regard_to_study(df, classifier_types, values_to_analyze=[
+        # EVAL+"_"+PRECISION,
+        # TRAIN+"_"+PRECISION,
+        TRAIN+"_"+ACCURACY,
+        EVAL+"_"+ACCURACY,
+        TRAIN+"_"+FALSE_NEGATIVE,
+        EVAL+"_"+FALSE_NEGATIVE,
 
         # EVAL+"_"+RECALL
-    ]
+    ],
+        absciss_key=picked_study
     )
-    analyze_bar_plot(df, classifier_types)
+    analyze_bar_plot(
+        df, classifier_types,
+        value_to_plot=EVAL+"_"+ACCURACY,
+        absciss_key=picked_study
+    )
+    
