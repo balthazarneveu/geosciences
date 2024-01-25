@@ -7625,6 +7625,54 @@ main {
 </div>
 </div>
 </div>
+</div></section></section><section><section>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h1 id="Conclusions">Conclusions<a class="anchor-link" href="#Conclusions">¶</a></h1><ul>
+<li>Very low data regime.</li>
+<li>Simplicity: Handcrafted features with very basic classifier achieves quite decent results.</li>
+<li>False Negative is the most important metric for this topic. False Positives may increase costs.</li>
+<li>More work to be done to decrease and reach 0% of false positives, either by adding metadata or making more complex classifiers.</li>
+<li>Class imbalance does not seem to affect results too much here. Noisy labels either.</li>
+<li>Known method limitations:<ul>
+<li>Cross validation is performed by sampling several noisy train sets... while test set remains the same to get a fixed test set reference without noise.</li>
+<li>Not using metatada</li>
+<li>No true way to specifically minimize false negatives.</li>
+<li><em>Quid: resampling on time dimension, did we loose information</em></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div></section></section><section><section>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h1 id="How-to-use?">How to use?<a class="anchor-link" href="#How-to-use?">¶</a></h1><ul>
+<li><a href="/TP_2/code/TP_2.ipynb">Notebook</a></li>
+<li>Command line interface:<ul>
+<li><code>python TP_2/code/train_classifiers.py --study sequence_lengths_study_noisy -r 20</code></li>
+<li>Choices of studies:<ul>
+<li><code>sequence_lengths_study</code>: vary pressure test duration, perfect labels, perfect class balance (50%-50%)</li>
+<li><code>sequence_lengths_study_noisy</code>: vary pressure test duration, slightly noisy labels (20%)</li>
+<li><code>noisy_labels_study</code>: study the influence of the amount of noisy labels on final performances.</li>
+<li><code>tight_ratio</code>: tight class ration: variation of class imbalance</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+</div>
 </div></section></section>
 </div>
 </div>
