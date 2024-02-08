@@ -51,31 +51,60 @@ def intersect_plane_with_cyliner(
     Intersect a plane parameterized by (dip, azimuth, origin) with a cylinder at a given azitmuth.
 
     Args:
-        azimuth_coordinate_phi (torch.Tensor): azimuthal coordinate of the point on the cylinder.
-        plane_angles_dip_azimuth_origin_z0 (torch.Tensor): dip, azimuth, and origin coordinates of the plane.
+        azimuth_coordinate_phi (torch.Tensor): [1 or N, W] azimuthal coordinate of the point on the cylinder.
+        plane_angles_dip_azimuth_origin_z0 (torch.Tensor): [N, 3] dip, azimuth, and origin coordinates of the plane.
         borehole_radius (float, optional): radius of the cylinder (meters). Defaults to RADIUS.
 
     Returns:
-        torch.Tensor: altitude coordinate z of the projected point on the plane (meters).
+        torch.Tensor: altitude coordinate z of the projected point on the plane (meters). [N, W]
     """
-
-    dip, azimuth = plane_angles_dip_azimuth_origin_z0[..., 0], plane_angles_dip_azimuth_origin_z0[..., 1]
-    plane_origin_z0 = plane_angles_dip_azimuth_origin_z0[..., 2]
-    altitude_z = plane_origin_z0 + borehole_radius*torch.tan(dip)*torch.cos(azimuth_coordinate_phi-azimuth)
+    params = plane_angles_dip_azimuth_origin_z0.unsqueeze(-1)
+    dip, azimuth = params[..., 0, :], params[..., 1, :]
+    plane_origin_z0 = params[..., 2, :]
+    sine_wave = borehole_radius*torch.tan(dip)*torch.cos(azimuth_coordinate_phi-azimuth)
+    altitude_z = plane_origin_z0 + sine_wave
     return altitude_z
+
+
+def angle_to_3d_vector(
+    azimuth_coordinate_phi: torch.Tensor,
+    altitude_z=None,
+    borehole_radius: float = RADIUS
+) -> torch.Tensor:
+    x = borehole_radius * torch.cos(azimuth_coordinate_phi)
+    y = borehole_radius * torch.sin(azimuth_coordinate_phi)
+    z = torch.zeros_like(x) if altitude_z is None else altitude_z
+    return torch.stack((x, y, z), dim=-1)
+
+
+def image_vector_to_3d_plane_tangent(
+    azi: torch.Tensor,
+    alt: torch.Tensor,
+    delta_azi: torch.Tensor,
+    delta_alt: torch.Tensor
+) -> torch.Tensor:
+    """Take a 2D image vector (phi, alti) and convert it to a 3D plane tangent vector."""
+    jac = torch.autograd.functional.jacobian(
+        angle_to_3d_vector,
+        (azi, alt)
+    )
+    estimated_3d_grad = jac[0]*delta_azi + jac[1]*delta_alt
+    return estimated_3d_grad
 
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
-    azimuth_coordinates_phi = torch.linspace(0, 2*torch.pi, 360).unsqueeze(-1)
+    azimuth_coordinates_phi = torch.linspace(0, 2*torch.pi, 360).unsqueeze(0)
+    azimuth_coordinates_phi = azimuth_coordinates_phi.repeat(2, 1)
     plane_angle = torch.tensor(
         [
             [torch.pi/4, torch.pi/4, 0.],
             [0.8*torch.pi/2., torch.pi/4, 1.],
         ]
     )
-    depth = intersect_plane_with_cyliner(azimuth_coordinates_phi, plane_angle)
-    plt.plot(torch.rad2deg(azimuth_coordinates_phi), depth)
+    altitude_z = intersect_plane_with_cyliner(azimuth_coordinates_phi, plane_angle)
+    print(altitude_z.shape)
+    plt.plot(torch.rad2deg(azimuth_coordinates_phi.T), altitude_z.T)
     plt.xlabel("Azimuth (degrees)")
     plt.ylabel("Depth (m)")
     plt.grid()
