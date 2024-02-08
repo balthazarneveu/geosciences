@@ -3,13 +3,13 @@ import torch
 
 def normal_vector_to_angles(vec_normal: torch.Tensor) -> torch.Tensor:
     """
-    Converts a normal vector to azimuth and dip angles.
+    Converts a normal vector to (dip, azimuth) angles.
 
     Args:
         vec_normal (torch.Tensor): A 3D vector representing the normal vector of a plane.
 
     Returns:
-        torch.Tensor: A 2D tensor containing the azimuth and dip angles in radians.
+        torch.Tensor: A 2D tensor containing the (dip, azimuth) angles in radians.
 
     Raises:
         ValueError: If the input tensor does not have a shape of (3,).
@@ -22,10 +22,10 @@ def normal_vector_to_angles(vec_normal: torch.Tensor) -> torch.Tensor:
 
 def angles_to_normal_vector(angles: torch.Tensor) -> torch.Tensor:
     """
-    Converts azimuth and dip angles to a normal vector.
+    Converts dip, azimuth angles to a normal vector.
 
     Args:
-        angles (torch.Tensor): A 2D tensor containing the azimuth and dip angles in radians.
+        angles (torch.Tensor): A 2D tensor containing the (dip, azimuth) angles in radians.
 
     Returns:
         torch.Tensor: A 3D tensor representing the normal vector of a plane.
