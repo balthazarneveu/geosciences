@@ -3,8 +3,8 @@ import numpy as np
 import torch
 from constants import DEPTH_STEP
 import matplotlib.colors as mcolors
-from plane_cylinder_projections import image_vector_to_3d_plane_tangent
 COLORS = list(mcolors.TABLEAU_COLORS)
+
 
 def plot_ground_truth_3d(
         azimuth_coordinates_phi,
@@ -56,8 +56,6 @@ def plot_ground_truth_3d(
     # ----------------- 3D quiver -----------------
     fig = plt.figure(figsize=(10, 10))
     ax = fig.add_subplot(111, projection='3d')
-    # colors = ['r', 'g', 'b', 'y']
-    # colors = ["tab:orange", "tab:blue", "tab:green", "tab:red"]
     # Extract x, y, z coordinates for plotting
     t3d = (p3D_gt[..., 1:, :] - p3D_gt[..., :-1, :])/3.
     colors = COLORS

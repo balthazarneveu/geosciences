@@ -9,5 +9,5 @@ def get_cross_products(tangents_3d: torch.tensor, num_points=800) -> Tuple[torch
     cross_product_norm = cross_product.norm(dim=-1, keepdim=True)
 
     cross_product = cross_product/cross_product_norm
-    cross_product.shape
+    cross_product *= torch.sign(cross_product[..., 2].unsqueeze(-1))  # force upwards
     return cross_product, cross_product_norm
