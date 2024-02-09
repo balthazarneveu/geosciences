@@ -1,8 +1,6 @@
 import torch
-
-ONE_INCH = 0.0254
-DIAMETER = 8.5 * ONE_INCH
-RADIUS = DIAMETER / 2
+import numpy as np
+from constants import DEPTH_STEP, RADIUS
 
 
 def normal_vector_to_angles(vec_normal: torch.Tensor) -> torch.Tensor:
@@ -112,3 +110,40 @@ if __name__ == "__main__":
     plt.ylabel("Depth (m)")
     plt.grid()
     plt.show()
+
+
+def get_tangent_vec_from_gradients(
+    grad_horizontal: np.ndarray,
+    grad_vertical: np.ndarray,
+    scaling_horizontal_step: float = np.pi/180.,
+    scaling_vertical_step: float = DEPTH_STEP,
+    normalize: bool = True
+) -> np.ndarray:
+    """Rotate by 90° to get the tangent vector + rescale
+
+    dI/dx = gray levels / delta pixels
+    dI/d(SI unit) = dI/dx / scaling_factor
+
+    Args:
+        grad_horizontal (np.ndarray): delta gray levels / delta degrees (dazimuth°)
+
+        grad_vertical (np.ndarray): delta gray levels / delta depth (dz)
+
+        scaling_horizontal_step (float, optional): Scaling to go from image units to SI unit. Defaults to np.pi/180
+        pi/180 * pixel step (1 horizontal pixel <-> 1 degrees =image units) = radians (SI units)
+
+        scaling_vertical_step (float, optional): Scaling to go from image units (pixel step) to SI unit (m). Defaults to DEPTH_STEP.
+        DEPTH_STEP = 0.00254 * pixel step (1 vertical pixel = 0.00254 m = image units) -> meters (SI units)
+
+    Returns:
+        np.ndarray: (N, 2) array of the tangent vectors
+    """
+    tangents_si_units = np.array([
+        -grad_vertical/scaling_vertical_step,
+        grad_horizontal/scaling_horizontal_step
+    ]
+    ).T
+    if normalize:
+        tangents_si_units = tangents_si_units / np.linalg.norm(tangents_si_units, axis=1)[:, None]
+    print(tangents_si_units.shape)
+    return tangents_si_units
