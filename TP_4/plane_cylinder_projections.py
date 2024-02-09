@@ -40,7 +40,7 @@ def angles_to_normal_vector(angles: torch.Tensor) -> torch.Tensor:
     return torch.stack((x, y, z), dim=-1)
 
 
-def intersect_plane_with_cyliner(
+def intersect_plane_with_cylinder(
     azimuth_coordinate_phi: torch.Tensor,
     plane_angles_dip_azimuth_origin_z0: torch.Tensor,
     borehole_radius: float = RADIUS
@@ -103,7 +103,7 @@ if __name__ == "__main__":
             [0.8*torch.pi/2., torch.pi/4, 1.],
         ]
     )
-    altitude_z = intersect_plane_with_cyliner(azimuth_coordinates_phi, plane_angle)
+    altitude_z = intersect_plane_with_cylinder(azimuth_coordinates_phi, plane_angle)
     print(altitude_z.shape)
     plt.plot(torch.rad2deg(azimuth_coordinates_phi.T), altitude_z.T)
     plt.xlabel("Azimuth (degrees)")

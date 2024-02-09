@@ -1,5 +1,5 @@
 import torch
-from plane_cylinder_projections import intersect_plane_with_cyliner, image_vector_to_3d_plane_tangent
+from plane_cylinder_projections import intersect_plane_with_cylinder, image_vector_to_3d_plane_tangent
 from typing import Tuple
 import numpy as np
 from constants import DEPTH_STEP
@@ -36,7 +36,7 @@ def create_planes_projection(
     # Let's sample the azimuth coordinates and compute the altitude of the planes
     azimuth_coordinates_phi = torch.linspace(0, 2*torch.pi, num_points).unsqueeze(0)
     azimuth_coordinates_phi = azimuth_coordinates_phi.repeat(plane_angle.shape[0], 1)
-    altitude_z = intersect_plane_with_cyliner(azimuth_coordinates_phi, plane_angle)
+    altitude_z = intersect_plane_with_cylinder(azimuth_coordinates_phi, plane_angle)
     return azimuth_coordinates_phi, altitude_z
 
 
