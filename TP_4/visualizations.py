@@ -150,3 +150,41 @@ def show_gradients_magnitudes(img_grad: np.ndarray):
     plt.title('Histogram of image gradient magnitude')
     plt.grid()
     plt.show()
+
+
+def plot_tangents_and_gradients_field(
+    coords: np.ndarray,
+    img_grad_h: np.ndarray,
+    img_grad_v: np.ndarray,
+    img: np.ndarray,
+    decimation: int = 100,
+    title='2D tangents to the projected 3D points'
+):
+    gradients_unscaled = np.array([img_grad_h, img_grad_v]).T
+    gradients_unscaled = gradients_unscaled / np.linalg.norm(gradients_unscaled, axis=1)[:, None]
+    tangents_unscaled = np.array([-img_grad_v, img_grad_h]).T
+    tangents_unscaled = tangents_unscaled / np.linalg.norm(tangents_unscaled, axis=1)[:, None]
+    plt.figure(figsize=(10, 10))
+    plt.imshow(img, cmap='hot')
+    for coord_idx in range(coords.shape[0]):
+        if coord_idx % decimation != 0:
+            continue
+        plt.arrow(
+            coords[coord_idx, 1], coords[coord_idx, 0],
+            20.*gradients_unscaled[coord_idx, 0],
+            20.*gradients_unscaled[coord_idx, 1],
+            head_width=2., head_length=3.,
+            fc='b',
+            ec='tab:orange',
+        )
+        plt.arrow(
+            coords[coord_idx, 1], coords[coord_idx, 0],
+            20.*tangents_unscaled[coord_idx, 0],
+            20.*tangents_unscaled[coord_idx, 1],
+            head_width=2., head_length=3.,
+            fc='b',
+            ec='tab:cyan',
+            alpha=0.5
+        )
+    plt.title(title)
+    plt.show()
