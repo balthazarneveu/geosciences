@@ -91,7 +91,9 @@ def validation_of_3d_tangent_estimation(
     p3D_gt: torch.Tensor = None,
     batches_index: list = None
 ):
-    """check that the jacobian computation of the 3D tangent
+    """
+    Computation of the tangent vectors using the jacobian of `image_vector_to_3d_plane_tangent`
+    check that the jacobian computation of the 3D tangent
     matches with the finite differences computation.
     """
     if batches_index is None:
