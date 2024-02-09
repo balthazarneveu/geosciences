@@ -29,17 +29,12 @@ def extract_2d_gradients_from_image(
     img_grad_v[~high_amplitude] = np.NaN
     img_grad[~high_amplitude] = np.NaN
     # Make tangents go from legt to right
-    img_grad_h *= -np.sign(img_grad_v)
-    img_grad_v *= -np.sign(img_grad_v)
+    # img_grad_h *= -np.sign(img_grad_v)
+    # img_grad_v *= -np.sign(img_grad_v)
     if plain:
         return img_grad_h, img_grad_v, img_grad, None
     coords = np.array(np.where(high_amplitude)).T
     img_grad_h = img_grad_h[high_amplitude]
     img_grad_v = img_grad_v[high_amplitude]
     img_grad = img_grad[high_amplitude]
-    # gradients_image_scales = np.array([img_grad_h[high_amplitude], img_grad_v[high_amplitude]]).T
-    # gradients_unscaled = gradients_image_scales / np.linalg.norm(gradients_image_scales, axis=1)[:, None]
-    # tangents_unscaled = np.array([-img_grad_v[high_amplitude], img_grad_h[high_amplitude]]).T
-    # tangents_unscaled = tangents_unscaled / np.linalg.norm(tangents_unscaled, axis=1)[:, None]
-
     return img_grad_h, -img_grad_v, img_grad, coords

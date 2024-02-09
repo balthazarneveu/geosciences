@@ -60,8 +60,9 @@ def intersect_plane_with_cylinder(
     dip, azimuth = params[..., 0, :], params[..., 1, :]
     plane_origin_z0 = params[..., 2, :]
     sine_wave = borehole_radius*torch.tan(dip)*torch.cos(azimuth_coordinate_phi-azimuth)
-    altitude_z = plane_origin_z0 + sine_wave
-    return -altitude_z
+    altitude_z = plane_origin_z0 - sine_wave
+    # return -altitude_z
+    return altitude_z
 
 
 def angle_to_3d_vector(
