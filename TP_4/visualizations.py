@@ -128,3 +128,25 @@ def validation_of_3d_tangent_estimation(
         plt.grid()
         plt.title(f"Estimated 3D tangent by finite differences vs computing using the jacobian - slide {batch_idx}")
         plt.show()
+
+
+def show_borehole_image(img: np.ndarray, title: str = 'Simulated borehole image'):
+    plt.figure(figsize=(10, 10))
+    plt.title(title)
+    plt.imshow(
+        img,
+        cmap='hot'
+    )
+    plt.show()
+
+
+def show_gradients_magnitudes(img_grad: np.ndarray):
+    plt.figure(figsize=(10, 5))
+    plt.subplot(1, 2, 1)
+    plt.imshow(img_grad, cmap='hot')
+    plt.title('Gradient magnitudes map')
+    plt.subplot(1, 2, 2)
+    plt.hist(img_grad.flatten(), bins=20)
+    plt.title('Histogram of image gradient magnitude')
+    plt.grid()
+    plt.show()

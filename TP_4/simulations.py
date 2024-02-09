@@ -1,6 +1,10 @@
 import torch
 from plane_cylinder_projections import intersect_plane_with_cyliner
 from typing import Tuple
+import numpy as np
+from constants import DEPTH_STEP
+from skimage import filters
+
 DEFAULT_PLANE_ANGLES = torch.tensor(
     [
         [0., 0.,  -0.3],
@@ -34,3 +38,32 @@ def create_planes_projection(
     azimuth_coordinates_phi = azimuth_coordinates_phi.repeat(plane_angle.shape[0], 1)
     altitude_z = intersect_plane_with_cyliner(azimuth_coordinates_phi, plane_angle)
     return azimuth_coordinates_phi, altitude_z
+
+
+def simulated_splat_image(
+    azimuth_coordinates_phi: torch.Tensor,
+    altitude_z: torch.Tensor,
+    noise_amplitude: float = 0.02,
+    sigma_blur: float = 2,
+    w: int = 365,
+    h: int = 600
+) -> np.ndarray:
+    w = 365
+    h = 600
+    img = np.zeros((h, w), dtype=np.float32)
+    img += np.random.normal(0, noise_amplitude, img.shape)
+    for batch_idx in range(altitude_z.shape[0]):
+        for idx in range(altitude_z.shape[1]):
+            z = altitude_z[batch_idx, idx]
+            azi_deg = azimuth_coordinates_phi[batch_idx, idx]
+            azi_deg = np.rad2deg(azi_deg)
+            row = int(-z/DEPTH_STEP)
+            if row < 0 or row >= h:
+                continue
+
+            col = int(azi_deg)
+            if col < 0 or col >= w:
+                continue
+            img[row, col] = 1.
+    img = filters.gaussian(img, sigma=sigma_blur)
+    return img
