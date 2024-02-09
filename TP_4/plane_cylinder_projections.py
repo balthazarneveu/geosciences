@@ -145,5 +145,4 @@ def get_tangent_vec_from_gradients(
     ).T
     if normalize:
         tangents_si_units = tangents_si_units / np.linalg.norm(tangents_si_units, axis=1)[:, None]
-    print(tangents_si_units.shape)
     return tangents_si_units

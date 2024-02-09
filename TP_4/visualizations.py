@@ -188,3 +188,32 @@ def plot_tangents_and_gradients_field(
         )
     plt.title(title)
     plt.show()
+
+
+def plot_3d_scatter(cross_product, sizes=None, colors=None, title='Plane tangents in 3D space'):
+    fig = plt.figure(figsize=(10, 10))
+    ax = fig.add_subplot(111, projection='3d')
+
+    for batch_index in range(cross_product.shape[0]):
+        tangent3d_x = cross_product[batch_index, :, 0]
+        tangent3d_y = cross_product[batch_index, :, 1]
+        tangent3d_z = cross_product[batch_index, :, 2]
+        # origin = np.zeros_like(tangent3d_x)
+        # ax.quiver(origin, origin, origin, tangent3d_x, tangent3d_y, tangent3d_z,
+        #           arrow_length_ratio=0.2,
+        #           label=f"Plane {batch_index}")
+        ax.scatter(
+            tangent3d_x,
+            tangent3d_y,
+            tangent3d_z,
+            s=sizes,
+            c=colors,
+            label=f"Plane {batch_index}"
+        )
+        # size=cross_product_norm[batch_index, :, 0].numpy()
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
+    plt.legend()
+    ax.set_title(title)
+    plt.show()
