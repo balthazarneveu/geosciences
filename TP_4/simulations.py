@@ -69,7 +69,7 @@ def simulated_splat_image(
     return img
 
 
-def get_3d_tangent_estimation(
+def get_3d_tangent_estimation_using_groundtruth(
     azimuth_coordinates_phi: torch.Tensor,
     altitude_z: torch.Tensor,
 ) -> torch.Tensor:
