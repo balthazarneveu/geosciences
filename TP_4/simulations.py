@@ -1,5 +1,5 @@
 import torch
-from plane_cylinder_projections import intersect_plane_with_cyliner
+from plane_cylinder_projections import intersect_plane_with_cyliner, image_vector_to_3d_plane_tangent
 from typing import Tuple
 import numpy as np
 from constants import DEPTH_STEP
@@ -67,3 +67,29 @@ def simulated_splat_image(
             img[row, col] = 1.
     img = filters.gaussian(img, sigma=sigma_blur)
     return img
+
+
+def get_3d_tangent_estimation(
+    azimuth_coordinates_phi: torch.Tensor,
+    altitude_z: torch.Tensor,
+) -> torch.Tensor:
+    """
+    Computation of the tangent vectors using the jacobian of `image_vector_to_3d_plane_tangent`
+    matches with the finite differences computation.
+    Based on the ground truth 3D points.
+    """
+    batches_index = range(azimuth_coordinates_phi.shape[0])
+    estimated_grad_list_all = []
+    for batch_idx in batches_index:
+        estimated_grad_list = []
+        for element_idx in range(azimuth_coordinates_phi.shape[1]-1):
+            azi, alt = azimuth_coordinates_phi[batch_idx, element_idx], altitude_z[batch_idx, element_idx]
+            delta_azi = azimuth_coordinates_phi[batch_idx, element_idx+1] - \
+                azimuth_coordinates_phi[batch_idx, element_idx]
+            delta_alt = altitude_z[batch_idx, element_idx+1] - altitude_z[batch_idx, element_idx]
+            estimated_grad = image_vector_to_3d_plane_tangent(azi, alt, delta_azi, delta_alt)
+            estimated_grad_list.append(estimated_grad)
+        estimated_grad_list = torch.stack(estimated_grad_list)
+        estimated_grad_list_all.append(estimated_grad_list)
+    estimated_grad_list_all = torch.stack(estimated_grad_list_all)
+    return estimated_grad_list_all

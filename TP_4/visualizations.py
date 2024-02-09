@@ -87,7 +87,7 @@ def plot_ground_truth_3d(
 
 def validation_of_3d_tangent_estimation(
     azimuth_coordinates_phi: torch.Tensor,
-    altitude_z: torch.Tensor,
+    estimated_grad_list_all: torch.Tensor,
     p3D_gt: torch.Tensor = None,
     batches_index: list = None
 ):
@@ -99,17 +99,9 @@ def validation_of_3d_tangent_estimation(
     if batches_index is None:
         batches_index = range(azimuth_coordinates_phi.shape[0])
     for batch_idx in batches_index:
-        estimated_grad_list = []
+        estimated_grad_list = estimated_grad_list_all[batch_idx, ...]
         if p3D_gt is not None:
             tangent3d = (p3D_gt[..., 1:, :] - p3D_gt[..., :-1, :])
-        for element_idx in range(azimuth_coordinates_phi.shape[1]-1):
-            azi, alt = azimuth_coordinates_phi[batch_idx, element_idx], altitude_z[batch_idx, element_idx]
-            delta_azi = azimuth_coordinates_phi[batch_idx, element_idx+1] - \
-                azimuth_coordinates_phi[batch_idx, element_idx]
-            delta_alt = altitude_z[batch_idx, element_idx+1] - altitude_z[batch_idx, element_idx]
-            estimated_grad = image_vector_to_3d_plane_tangent(azi, alt, delta_azi, delta_alt)
-            estimated_grad_list.append(estimated_grad)
-        estimated_grad_list = torch.stack(estimated_grad_list)
         for dim_idx, dim_name, dim_color in zip(range(3), "xyz", "rgb"):
             plt.plot(
                 torch.rad2deg(azimuth_coordinates_phi[batch_idx, :-1]), estimated_grad_list[:, dim_idx],
@@ -190,27 +182,45 @@ def plot_tangents_and_gradients_field(
     plt.show()
 
 
-def plot_3d_scatter(cross_product, sizes=None, colors=None, title='Plane tangents in 3D space'):
+def plot_3d_scatter(
+    point_cloud=None,
+    sizes=None,
+    forced_color=None,
+    alpha=1.,
+    label="Plane 3D points",
+    title='Plane tangents in 3D space',
+    label_vector="Normal vector",
+    vects: np.ndarray = None
+):
     fig = plt.figure(figsize=(10, 10))
     ax = fig.add_subplot(111, projection='3d')
+    colors = list(mcolors.TABLEAU_COLORS)
+    if point_cloud is not None:
+        for batch_index in range(point_cloud.shape[0]):
+            color = colors[batch_index % len(colors)]
+            tangent3d_x = point_cloud[batch_index, :, 0]
+            tangent3d_y = point_cloud[batch_index, :, 1]
+            tangent3d_z = point_cloud[batch_index, :, 2]
+            ax.scatter(
+                tangent3d_x,
+                tangent3d_y,
+                tangent3d_z,
+                # s=sizes,
+                c=color if forced_color is None else forced_color,
+                label=f"{label} {batch_index}",
+                alpha=alpha
+            )
+            # size=cross_product_norm[batch_index, :, 0].numpy()
 
-    for batch_index in range(cross_product.shape[0]):
-        tangent3d_x = cross_product[batch_index, :, 0]
-        tangent3d_y = cross_product[batch_index, :, 1]
-        tangent3d_z = cross_product[batch_index, :, 2]
-        # origin = np.zeros_like(tangent3d_x)
-        # ax.quiver(origin, origin, origin, tangent3d_x, tangent3d_y, tangent3d_z,
-        #           arrow_length_ratio=0.2,
-        #           label=f"Plane {batch_index}")
-        ax.scatter(
-            tangent3d_x,
-            tangent3d_y,
-            tangent3d_z,
-            s=sizes,
-            c=colors,
-            label=f"Plane {batch_index}"
-        )
-        # size=cross_product_norm[batch_index, :, 0].numpy()
+    if vects is not None:
+        for batch_index in range(vects.shape[0]):
+            color = colors[batch_index % len(colors)]
+            ax.quiver(
+                0, 0, 0, vects[batch_index, 0], vects[batch_index, 1], vects[batch_index, 2],
+                colors=color,
+                label=f"{label_vector} {batch_index}",
+            )
+    plt.plot(0, 0, 0, "o", color="k", label="origin")
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
     ax.set_zlabel('Z')
