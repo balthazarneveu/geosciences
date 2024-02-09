@@ -4,7 +4,7 @@ import torch
 from constants import DEPTH_STEP
 import matplotlib.colors as mcolors
 from plane_cylinder_projections import image_vector_to_3d_plane_tangent
-
+COLORS = list(mcolors.TABLEAU_COLORS)
 
 def plot_ground_truth_3d(
         azimuth_coordinates_phi,
@@ -58,9 +58,9 @@ def plot_ground_truth_3d(
     ax = fig.add_subplot(111, projection='3d')
     # colors = ['r', 'g', 'b', 'y']
     # colors = ["tab:orange", "tab:blue", "tab:green", "tab:red"]
-    colors = list(mcolors.TABLEAU_COLORS)
     # Extract x, y, z coordinates for plotting
     t3d = (p3D_gt[..., 1:, :] - p3D_gt[..., :-1, :])/3.
+    colors = COLORS
     for batch_index in range(p3D_gt.shape[0]):
         x_coords, y_coords, z_coords = p3D_gt[batch_index, :-1,
                                               0], p3D_gt[batch_index, :-1, 1], p3D_gt[batch_index, :-1, 2]
@@ -194,7 +194,7 @@ def plot_3d_scatter(
 ):
     fig = plt.figure(figsize=(10, 10))
     ax = fig.add_subplot(111, projection='3d')
-    colors = list(mcolors.TABLEAU_COLORS)
+    colors = COLORS
     if point_cloud is not None:
         for batch_index in range(point_cloud.shape[0]):
             color = colors[batch_index % len(colors)]
