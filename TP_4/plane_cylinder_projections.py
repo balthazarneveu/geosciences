@@ -84,6 +84,9 @@ def image_vector_to_3d_plane_tangent(
     delta_alt: torch.Tensor
 ) -> torch.Tensor:
     """Take a 2D image vector (phi, alti) and convert it to a 3D plane tangent vector."""
+    # There's no obvious way to compute the jacobian per batch element, so ... loop over the elements
+    # There's a hacky solution proposed in pytorch forums, but it's not clear if it's correct
+    # https://discuss.pytorch.org/t/computing-batch-jacobian-efficiently/80771
     jac = torch.autograd.functional.jacobian(
         angle_to_3d_vector,
         (azi, alt)
