@@ -164,14 +164,14 @@ def plot_tangents_and_gradients_field(
         plt.arrow(
             coords[coord_idx, 1], coords[coord_idx, 0],
             20.*gradients_unscaled[coord_idx, 0],
-            20.*gradients_unscaled[coord_idx, 1],
+            -20.*gradients_unscaled[coord_idx, 1],
             head_width=2., head_length=3.,
             fc='b',
             ec='tab:orange',
         )
         plt.arrow(
             coords[coord_idx, 1], coords[coord_idx, 0],
-            20.*tangents_unscaled[coord_idx, 0],
+            -20.*tangents_unscaled[coord_idx, 0],
             20.*tangents_unscaled[coord_idx, 1],
             head_width=2., head_length=3.,
             fc='b',

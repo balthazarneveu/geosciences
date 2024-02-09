@@ -42,4 +42,4 @@ def extract_2d_gradients_from_image(
     # tangents_unscaled = np.array([-img_grad_v[high_amplitude], img_grad_h[high_amplitude]]).T
     # tangents_unscaled = tangents_unscaled / np.linalg.norm(tangents_unscaled, axis=1)[:, None]
 
-    return img_grad_h, img_grad_v, img_grad, coords
+    return img_grad_h, -img_grad_v, img_grad, coords
