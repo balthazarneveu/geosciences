@@ -1,3 +1,4 @@
+from pathlib import Path
 from matplotlib import pyplot as plt
 import numpy as np
 import torch
@@ -134,7 +135,7 @@ def show_borehole_image(img: np.ndarray, title: str = 'Simulated borehole image'
     plt.show()
 
 
-def show_gradients_magnitudes(img_grad: np.ndarray, bins:int = 20):
+def show_gradients_magnitudes(img_grad: np.ndarray, bins: int = 20):
     plt.figure(figsize=(10, 5))
     plt.subplot(1, 2, 1)
     plt.imshow(img_grad, cmap='hot')
@@ -229,3 +230,24 @@ def plot_3d_scatter(
     plt.legend()
     ax.set_title(title)
     plt.show()
+
+
+def visualize_accumulator(histo, bin_edges, best_dip, best_azimuth, out_path: Path = None):
+    plt.figure(figsize=(5, 5))
+    plt.imshow(
+        histo,
+        extent=[
+            np.rad2deg(bin_edges[1][0]), np.rad2deg(bin_edges[1][-1]),
+            np.rad2deg(bin_edges[0][-1]), np.rad2deg(bin_edges[0][0]),
+        ],
+        aspect='auto')
+    plt.plot(
+        np.rad2deg(best_azimuth),
+        np.rad2deg(best_dip),
+        marker="x", color="red", markersize=10, label="Mode")
+    plt.title(f"Estimated dip: {np.rad2deg(best_dip):.3f}° and azimuth: {np.rad2deg(best_azimuth):.3f}°")
+    plt.legend()
+    if out_path is not None:
+        plt.savefig(out_path)
+    else:
+        plt.show()
