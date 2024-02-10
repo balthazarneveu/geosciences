@@ -3,7 +3,6 @@ from typing import Tuple, Union, List
 from constants import DEPTH_STEP
 from plane_cylinder_projections import normal_vector_to_angles, image_vector_to_3d_plane_tangent
 import numpy as np
-import torch
 
 # --------- METHOD 1 Randomized cross products method ---------
 
@@ -48,7 +47,7 @@ def get_cross_products(tangents_3d: torch.tensor, num_points=800) -> Tuple[torch
     Compute cross products by picking random pairs of 3D tangents.
 
     Args:
-        tangents_3d (torch.tensor): 3D tangents.
+        tangents_3d (torch.tensor): 3D tangents. [N, L, 3]
         num_points (int, optional): Number of random pairs to generate. Defaults to 800.
 
     Returns:
@@ -73,11 +72,11 @@ def extract_dip_azimuth(
     Method 1
 
     Args:
-        dip_az_estim (torch.Tensor): Estimated dip and azimuth tensor.
+        dip_az_estim (torch.Tensor): Estimated dip and azimuth tensor. [N, L, 2]
         bins (List[int], optional): Number of bins for 2D histogram calculation. Defaults to [20, 20].
 
     Returns:
-        Tuple[float, float, torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]: Tuple containing 
+        Tuple[float, float, torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]: Tuple containing
         best dip, best azimuth, histogram, bin edges.
     """
 
@@ -95,7 +94,7 @@ def extract_dip_azimuth(
 # --------- METHOD 2 Eigen vectors of covariance matrix ---------
 
 
-def extract_dip_azimuth_by_plane_normal_estimation(tangent3d_tensor: torch.Tensor) -> torch.Tensor:
+def extract_dip_azimuth_by_plane_normal_estimation(tangent3d_tensor: torch.Tensor, weights: torch.Tensor = None) -> torch.Tensor:
     """
     Extracts the dip and azimuth angles by finding the estimated plane normal.
     This is solved by finding the eigenvector corresponding to the smallest eigenvalue of the covariance matrix
@@ -103,15 +102,20 @@ def extract_dip_azimuth_by_plane_normal_estimation(tangent3d_tensor: torch.Tenso
     Method 2
 
     Args:
-        tangent3d_tensor (torch.Tensor): The tensor containing tangent vectors in 3D.
+        tangent3d_tensor (torch.Tensor): tensor containing tangent vectors in 3D. [N, L, 3]
 
     Returns:
-        torch.Tensor: The tensor containing the dip and azimuth angles.
+        torch.Tensor: tensor containing the dip and azimuth angles. [N, 2]
 
     """
-    cov = torch.bmm(tangent3d_tensor.transpose(1, 2), tangent3d_tensor)
+    if weights is not None:
+        weights = weights.unsqueeze(-1)
+        weights = weights.repeat(1, 1, 3) / 3.  # use weights - more weight to high gradients
+        cov = torch.bmm(tangent3d_tensor.transpose(1, 2), weights*tangent3d_tensor)
+    else:
+        cov = torch.bmm(tangent3d_tensor.transpose(1, 2), tangent3d_tensor)
     eig_val, eig_vec = torch.linalg.eigh(cov)  # The eigenvalues are returned in ascending order.
     estimated_normals = eig_vec[:, :, 0]  # Extract eigen vector corresponding to the smallest eigenvalue
-    estimated_normals *= torch.sign(estimated_normals[..., -1]).unsqueeze(-1)
+    estimated_normals *= torch.sign(estimated_normals[..., -1]).unsqueeze(-1)  # vectors point upwards!
     dip_az_est = normal_vector_to_angles(estimated_normals)
     return dip_az_est
