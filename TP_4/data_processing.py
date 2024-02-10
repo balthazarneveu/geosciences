@@ -1,19 +1,15 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import scipy.ndimage as ndimage
-from visualizations import show_borehole_image
-import math
 from skimage import filters
-from visualizations import show_gradients_magnitudes
 from constants import ABSENT_VALUE, DEPTH_STEP
 from pathlib import Path
 from plane_cylinder_projections import get_tangent_vec_from_gradients, angle_to_3d_vector, normal_vector_to_angles
 from plane_extraction import get_cross_products, compute_3d_tangent_vectors, extract_dip_azimuth
 import torch
 from visualizations import (plot_ground_truth_3d, show_borehole_image,
-                            show_gradients_magnitudes, plot_3d_scatter, COLORS,
+                            show_gradients_magnitudes, plot_3d_scatter,
                             visualize_accumulator)
-from simulations import DEFAULT_PLANE_ANGLES, create_planes_projection
+from simulations import create_planes_projection
 from image_processing import extract_2d_gradients_from_image
 from tqdm import tqdm
 from typing import Tuple
@@ -24,7 +20,6 @@ DATA = HERE/'data'
 def load_data(file_name: str = "5010_5110"):
     image_input = np.load(DATA/f'FMI_STAT_{file_name}.npy')
     num_rows_total, num_columns_total = image_input.shape
-    print(image_input.shape)
     tdep = np.load(DATA/f'TDEP_{file_name}.npy')
     mask_absent = (image_input == ABSENT_VALUE)
     image_display = image_input.copy()
@@ -35,13 +30,6 @@ def load_data(file_name: str = "5010_5110"):
 def extract_2d_gradients(img, **kwargs):
     img_grad = filters.sobel(img)
     show_gradients_magnitudes(img_grad, **kwargs)
-
-
-def quick_check(roi_def=[1600, 2600]):
-    image_input, mask_absent, image_display, tdep = load_data()
-    roi = image_display[roi_def[0]:roi_def[1]]
-    show_borehole_image(roi, title=f'Real borehole image {roi_def[0]/DEPTH_STEP}m - {roi_def[1]/DEPTH_STEP}m')
-    extract_2d_gradients(roi)
 
 
 def process_roi(image_display, roi_def=[500, 1300], debug: bool = False, out_path: Path = None):
@@ -69,8 +57,6 @@ def process_roi(image_display, roi_def=[500, 1300], debug: bool = False, out_pat
         # num_points=10000
     )
     dip_az_estim = normal_vector_to_angles(cross_product_estimated)
-    # dip_az_estim[..., 1] = dip_az_estim[..., 1] % (np.pi)
-    # best_dip, best_azimuth, histo, bin_edges = extract_dip_azimuth(dip_az_estim, bins=[20, 20])
     best_dip, best_azimuth, histo, bin_edges = extract_dip_azimuth(dip_az_estim, bins=[20, 20])
     visualize_accumulator(
         histo, bin_edges, best_dip, best_azimuth,
@@ -105,10 +91,16 @@ def process_roi(image_display, roi_def=[500, 1300], debug: bool = False, out_pat
         plt.show()
 
 
-def main(debug: bool = False, out_folder: Path = HERE/'results', forced_roi: Tuple[int, int] = None, roi_size: int = 800):
+def main(
+    file_name: str = "5010_5110",
+    debug: bool = False,
+    out_folder: Path = HERE/'results',
+    forced_roi: Tuple[int, int] = None,
+    roi_size: int = 800
+):
     if out_folder is not None:
         out_folder.mkdir(exist_ok=True, parents=True)
-    image_input, mask_absent, image_display, tdep = load_data()
+    image_input, mask_absent, image_display, tdep = load_data(file_name=file_name)
 
     if forced_roi is not None:
         process_roi(image_display, forced_roi, debug=debug, out_path=out_folder)
@@ -119,7 +111,6 @@ def main(debug: bool = False, out_folder: Path = HERE/'results', forced_roi: Tup
 
 
 if __name__ == "__main__":
-    # quick_check()
     main(out_folder=HERE/'results_roi_size_200', roi_size=200)
     # main(out_folder=HERE/'results_roi_size_400', roi_size=400)
     # main(forced_roi=[1350, 1700], out_folder=HERE/'results_manual')
