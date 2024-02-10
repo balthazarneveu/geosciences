@@ -69,7 +69,17 @@ def process_roi(image_display, roi_def=[500, 1300], debug: bool = False, out_pat
             # num_points=10000
         )
         dip_az_estim = normal_vector_to_angles(cross_product_estimated)
-        best_dip, best_azimuth, histo, bin_edges = extract_dip_azimuth(dip_az_estim, bins=[20, 20])
+        weight_cross_product = cross_product_norm_estim.squeeze(-1)
+        weight = weight_cross_product
+        # IDEALLY WE SHOULD ALSO WEIGHT BY GRADIENT NORM 
+        # requires refactoring the function get_cross_products
+        # weight_gradient_norms = torch.from_numpy(img_grad/img_grad.sum()).float().unsqueeze(0)
+        # weight = weight_cross_product*weight_gradient_norms
+        best_dip, best_azimuth, histo, bin_edges = extract_dip_azimuth(
+            dip_az_estim,
+            bins=[20, 20],
+            weights=weight
+        )
         visualize_accumulator(
             histo, bin_edges, best_dip, best_azimuth,
             out_path=None if out_path is None else out_path/(out_name+'_accumulator.png')
@@ -80,7 +90,6 @@ def process_roi(image_display, roi_def=[500, 1300], debug: bool = False, out_pat
             weights=torch.from_numpy(img_grad/img_grad.sum()).float().unsqueeze(0)
         )
         best_dip, best_azimuth = dip_az_estim[0, 0], dip_az_estim[0, 1]
-        print(best_dip, best_azimuth)
     estimated_plane_angle = torch.tensor(
         [
             [best_dip, best_azimuth, 0.],
@@ -132,6 +141,7 @@ def main(
 
 
 if __name__ == "__main__":
-    main(out_folder=HERE/'results_roi_size_200', roi_size=200, method=1)
+    main(forced_roi=[1350, 1700], out_folder=HERE/'results_manual', method=1)
+    main(out_folder=HERE/'__results_roi_size_200', roi_size=200, method=1)
     # main(out_folder=HERE/'results_roi_size_400', roi_size=400)
     # main(forced_roi=[1350, 1700], out_folder=HERE/'results_manual', method=1)

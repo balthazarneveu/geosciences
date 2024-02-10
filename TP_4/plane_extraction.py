@@ -1,5 +1,5 @@
 import torch
-from typing import Tuple, Union, List
+from typing import Tuple, Union, List, Optional
 from constants import DEPTH_STEP
 from plane_cylinder_projections import normal_vector_to_angles, image_vector_to_3d_plane_tangent
 import numpy as np
@@ -65,8 +65,10 @@ def get_cross_products(tangents_3d: torch.tensor, num_points=800) -> Tuple[torch
 
 
 def extract_dip_azimuth(
-        dip_az_estim: torch.Tensor,
-        bins: List[int] = [20, 20]) -> Tuple[float, float, torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
+    dip_az_estim: torch.Tensor,
+    bins: List[int] = [20, 20],
+    weights: Optional[torch.Tensor] = None
+) -> Tuple[float, float, torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
     """
     Extracts dip and azimuth from a large tensor of estimated dip and azimuth from randomized cross products.
     Method 1
@@ -74,13 +76,15 @@ def extract_dip_azimuth(
     Args:
         dip_az_estim (torch.Tensor): Estimated dip and azimuth tensor. [N, L, 2]
         bins (List[int], optional): Number of bins for 2D histogram calculation. Defaults to [20, 20].
-
+        weights (Optional[torch.Tensor], optional): Weights for the histogram. 
+        Give more weights to high amplitude gradients and cross products of high amplitude (not colinear).
+        Defaults to None.
     Returns:
         Tuple[float, float, torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]: Tuple containing
         best dip, best azimuth, histogram, bin edges.
     """
 
-    histo, bin_edges = torch.histogramdd(dip_az_estim, bins=bins)
+    histo, bin_edges = torch.histogramdd(dip_az_estim, bins=bins, weight=weights)
     maxi = torch.max(histo)
     amax_mode = torch.where(histo == maxi)
     # Compute the midpoint of the bins to ge the dip and azimuth

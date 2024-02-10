@@ -31,7 +31,7 @@ def plot_ground_truth_3d(
     ax.set_xlabel("Azimuth (degrees)")
     ax.set_ylabel("Depth (m)")
     ax.grid()
-    ax.legend()
+    # ax.legend()
     ax.set_title('Plane locations in 2D space')
     # plt.show()
 
