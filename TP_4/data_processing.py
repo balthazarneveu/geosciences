@@ -8,7 +8,7 @@ from plane_extraction import get_cross_products, compute_3d_tangent_vectors, ext
 import torch
 from visualizations import (plot_ground_truth_3d, show_borehole_image,
                             show_gradients_magnitudes, plot_3d_scatter,
-                            visualize_accumulator)
+                            visualize_accumulator, plot_tangents_and_gradients_field)
 from simulations import create_planes_projection
 from image_processing import extract_2d_gradients_from_image
 from tqdm import tqdm
@@ -44,6 +44,13 @@ def process_roi(image_display, roi_def=[500, 1300], debug: bool = False, out_pat
         threshold_magnitude=5000.,
         thresold_abs_v_grad=3000
     )
+    if debug:
+        img_grad_h, img_grad_v, img_grad, coords = extract_2d_gradients_from_image(
+            roi,
+            threshold_magnitude=5000.,
+            thresold_abs_v_grad=3000
+        )
+        plot_tangents_and_gradients_field(coords, img_grad_h, img_grad_v, roi, decimation=3, title='Tangents and gradients field')
     tan_vec_2d = get_tangent_vec_from_gradients(img_grad_h, img_grad_v, normalize=False)
     img_coords = torch.from_numpy(coords).float()
     p3D_est = angle_to_3d_vector(np.deg2rad(img_coords[:, 1]), -img_coords[:, 0]*DEPTH_STEP).unsqueeze(0)
