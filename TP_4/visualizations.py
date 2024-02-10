@@ -10,7 +10,9 @@ def plot_ground_truth_3d(
         azimuth_coordinates_phi,
         altitude_z,
         p3D_gt,
-        img_coords=None, p3D_est=None):
+        img_coords=None,
+        p3D_est=None,
+        name="Ground truth"):
     decim = 30
     # Plotting
     fig = plt.figure(figsize=(10, 5))
@@ -39,7 +41,7 @@ def plot_ground_truth_3d(
     # Extract x, y, z coordinates for plotting
     for batch_index in range(p3D_gt.shape[0]):
         x_coords, y_coords, z_coords = p3D_gt[batch_index, :, 0], p3D_gt[batch_index, :, 1], p3D_gt[batch_index, :, 2]
-        ax.scatter(x_coords, y_coords, z_coords, "o", label=f"Groundtruth Plane {batch_index}")
+        ax.scatter(x_coords, y_coords, z_coords, "o", label=f"{name} Plane {batch_index}")
     if p3D_est is not None:
         for batch_index in range(p3D_est.shape[0]):
             p3D_est_dec = p3D_est[:, ::decim, :]
@@ -68,7 +70,7 @@ def plot_ground_truth_3d(
         ax.scatter(
             x_coords[::dec], y_coords[::dec], z_coords[::dec],
             color=colors[batch_index % len(colors)],
-            label=f"Groundtruth Plane tangents {batch_index}")
+            label=f"{name} Plane tangents {batch_index}")
         ax.quiver(x_coords[::dec], y_coords[::dec], z_coords[::dec],
                   factor*tangent3d_x[::dec], factor*tangent3d_y[::dec], factor*tangent3d_z[::dec],
                   color=colors[batch_index % len(colors)],
