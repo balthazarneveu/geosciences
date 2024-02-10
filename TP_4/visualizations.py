@@ -123,6 +123,8 @@ def validation_of_3d_tangent_estimation(
 def show_borehole_image(img: np.ndarray, title: str = 'Simulated borehole image'):
     plt.figure(figsize=(10, 10))
     plt.title(title)
+    plt.xlabel('Azimuth (°)')
+    plt.ylabel('Depth = Negative altitude')
     plt.imshow(
         img,
         cmap='hot'
@@ -130,13 +132,13 @@ def show_borehole_image(img: np.ndarray, title: str = 'Simulated borehole image'
     plt.show()
 
 
-def show_gradients_magnitudes(img_grad: np.ndarray):
+def show_gradients_magnitudes(img_grad: np.ndarray, bins:int = 20):
     plt.figure(figsize=(10, 5))
     plt.subplot(1, 2, 1)
     plt.imshow(img_grad, cmap='hot')
     plt.title('Gradient magnitudes map')
     plt.subplot(1, 2, 2)
-    plt.hist(img_grad.flatten(), bins=20)
+    plt.hist(img_grad.flatten(), bins=bins)
     plt.title('Histogram of image gradient magnitude')
     plt.grid()
     plt.show()
