@@ -7,11 +7,15 @@ import torch
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
+
 def get_parser(parser: Optional[argparse.ArgumentParser] = None) -> argparse.ArgumentParser:
     if parser is None:
         parser = argparse.ArgumentParser(description="Train a model")
     parser.add_argument("-e", "--exp", nargs="+", type=int, required=True, help="Experiment id")
     parser.add_argument("-o", "--output-dir", type=str, default=ROOT_DIR/OUTPUT_FOLDER_NAME, help="Models directory")
+    parser.add_argument("-m", "--mode", type=str, default=VALIDATION,
+                        choices=[VALIDATION, TRAIN], help="Mode for inference")
+
     return parser
 
 
@@ -28,8 +32,7 @@ def inference_main(argv):
         model.load_state_dict(torch.load(args.output_dir/config[NAME]/"best_model.pt"))
         model.eval()
         model.to(device)
-        # mode = VALIDATION
-        mode = TRAIN
+        mode = args.mode
         dataloader = dl_dict[mode]
         running_index = 0
         for img, label in tqdm(dataloader):
@@ -46,7 +49,7 @@ def inference_main(argv):
                 plt.imshow(predicted_mask[idx, 0])
                 plt.subplot(1, 3, 3)
                 plt.imshow(label[idx, 0])
-                plt.savefig(inference_dir/f"{mode}_{running_index}.png")
+                plt.savefig(inference_dir/f"{mode}_{running_index:06d}.png")
                 plt.close()
                 running_index += 1
                 # plt.show()
