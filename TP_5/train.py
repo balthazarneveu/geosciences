@@ -10,6 +10,7 @@ from shared import (
     ROOT_DIR, OUTPUT_FOLDER_NAME,
     ID, NAME, NB_EPOCHS,
     TRAIN, VALIDATION, TEST, LR,
+    ACCURACY,
     DEVICE, SCHEDULER_CONFIGURATION, SCHEDULER, REDUCELRONPLATEAU
 )
 from torch.optim.lr_scheduler import ReduceLROnPlateau
@@ -34,6 +35,13 @@ def get_parser(parser: Optional[argparse.ArgumentParser] = None) -> argparse.Arg
     return parser
 
 
+def compute_accuracy(y_pred: torch.Tensor, y_true: torch.Tensor, threshold: float = 0.5):
+    y_pred_thresh = (torch.sigmoid(y_pred) > threshold).float()
+    correct_predictions = (y_pred_thresh == y_true).float().sum()
+    accuracy = correct_predictions / y_true.numel()
+    return accuracy.item()
+
+
 def training_loop(
     model,
     optimizer,
@@ -45,7 +53,7 @@ def training_loop(
     output_dir: Path = None
 ):
     for n_epoch in tqdm(range(config[NB_EPOCHS])):
-        current_loss = {TRAIN: 0., VALIDATION: 0., LR: optimizer.param_groups[0]['lr']}
+        current_metrics = {TRAIN: 0., VALIDATION: 0., LR: optimizer.param_groups[0]['lr'], ACCURACY: 0.}
         for phase in [TRAIN, VALIDATION]:
             if phase == TRAIN:
                 model.train()
@@ -57,21 +65,29 @@ def training_loop(
                 with torch.set_grad_enabled(phase == TRAIN):
                     y_pred = model(x)
                     loss = torch.nn.functional.binary_cross_entropy_with_logits(y_pred.view(-1), y.view(-1))
+
                     if torch.isnan(loss):
                         continue
                     if phase == TRAIN:
                         loss.backward()
                         optimizer.step()
-                current_loss[phase] += loss.item()
-            current_loss[phase] /= (len(dl_dict[phase]))
-        print(f"{phase}: Epoch {n_epoch} - Loss: {current_loss[phase]:.3e}")
+                current_metrics[phase] += loss.item()
+                if phase == VALIDATION:
+                    accuracy = compute_accuracy(y_pred.view(-1), y.view(-1))
+                    current_metrics[ACCURACY] += accuracy
+            current_metrics[phase] /= (len(dl_dict[phase]))
+            if phase == VALIDATION:
+                current_metrics[ACCURACY] /= (len(dl_dict[phase]))
+        print(
+            f"{phase}: Epoch {n_epoch} - Loss: {current_metrics[phase]:.3e} " +
+            f"Accuracy: {current_metrics[ACCURACY]:.3%}")
         if scheduler is not None and isinstance(scheduler, ReduceLROnPlateau):
-            scheduler.step(current_loss[VALIDATION])
+            scheduler.step(current_metrics[VALIDATION])
         if output_dir is not None:
             with open(output_dir/f"metrics_{n_epoch}.json", "w") as f:
-                json.dump(current_loss, f)
+                json.dump(current_metrics, f)
         if wandb_flag:
-            wandb.log(current_loss)
+            wandb.log(current_metrics)
     if output_dir is not None:
         torch.save(model.cpu().state_dict(), output_dir/"last_model.pt")
     return model
