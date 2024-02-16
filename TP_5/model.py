@@ -76,7 +76,7 @@ class UNet(BaseModel):
                  channels_extension: int = 24,
                  k_conv_ds: int = 3,
                  k_conv_us: int = 3,
-                 num_layers: int = 6,
+                 num_layers: int = 2,
                  bias: bool = True,
                  ) -> None:
         super().__init__()
