@@ -48,6 +48,9 @@ def get_experiment_config(exp: int) -> dict:
 def get_training_content(config: dict, device=DEVICE) -> Tuple[torch.nn.Module, torch.optim.Optimizer, dict]:
     model = UNet(**config[MODEL][ARCHITECTURE])
     assert config[MODEL][NAME] == UNet.__name__
+    if True:
+        n, ch, h, w = 4, 1, 36, 36
+        model(torch.rand(n, ch, w, h))
     config[MODEL][N_PARAMS] = model.count_parameters()
     optimizer = torch.optim.Adam(model.parameters(), **config[OPTIMIZER][PARAMS])
     dl_dict = get_dataloaders(config, device=device)

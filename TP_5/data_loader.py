@@ -21,7 +21,7 @@ def load_npy_files(path: Path) -> torch.Tensor:
     if path is None:
         return torch.empty(0)
     assert path.exists(), f"Path {path} does not exist"
-    return torch.from_numpy(np.load(str(path)))
+    return torch.from_numpy(np.load(str(path))).unsqueeze(0).float()
 
 
 class SegmentationDataset(Dataset):
@@ -30,8 +30,6 @@ class SegmentationDataset(Dataset):
         images_path: Path = ROOT_DIR/"data"/TRAIN/IMAGES_FOLDER,
         labels_path: Optional[Path] = None,
         device: str = DEVICE,
-        freeze: bool = False,
-        seed: int = 42,
         preloaded: bool = False
     ):
         self.preloaded = preloaded
@@ -67,14 +65,14 @@ def get_dataloaders(config: dict, device: str = DEVICE):
     dl_train = SegmentationDataset(
         ROOT_DIR/"data"/TRAIN/IMAGES_FOLDER,
         labels_path=ROOT_DIR/"data"/TRAIN/LABELS_FOLDER,
-        freeze=False, device=device)
+        device=device)
     dl_valid = SegmentationDataset(
         ROOT_DIR/"data"/VALIDATION/IMAGES_FOLDER,
         labels_path=ROOT_DIR/"data"/VALIDATION/LABELS_FOLDER,
-        freeze=True, device=device)
+        device=device)
     # dl_test = SegmentationDataset(
     #     ROOT_DIR/"data"/TEST/IMAGES_FOLDER,
-    #     freeze=True, device=device
+    #     device=device
     # )
     dl_dict = {
         TRAIN: DataLoader(dl_train, shuffle=True, batch_size=config[DATALOADER][BATCH_SIZE][TRAIN]),
@@ -99,7 +97,6 @@ if __name__ == "__main__":
     for run_index in range(2):
         for idx, mode in enumerate([TRAIN, VALIDATION]):
             img, lab = next(iter(dl_dict[mode]))
-            print(img.shape, lab.shape)
             plt.subplot(2, 4, run_index*4+1+2*idx)
             plt.imshow(img.view(-1, img.shape[-1]).cpu().numpy(), cmap="hot")
             plt.title(mode + f" input - run {run_index}")

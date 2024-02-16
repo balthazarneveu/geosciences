@@ -60,7 +60,6 @@ class DecoderStage(torch.nn.Module):
     def forward(self, x_ds: torch.Tensor, x_skip: torch.Tensor) -> torch.Tensor:
         """"""
         x_us = self.upsample(x_ds)  # [N, C, H/2, W/2] -> [N, C, H, W]
-        print(x_us.shape, x_skip.shape)
         x = torch.cat([x_us, x_skip], dim=1)  # [N, 2C, H, W]
         x = self.conv_block(x)  # [N, C, H, W]
         return x
@@ -119,7 +118,6 @@ class UNet(BaseModel):
             ds_list.append(x_ds.clone())
         x_dec = self.bottleneck(ds_list[-1])
         for level, dec in enumerate(self.decoder_list[::-1]):
-            print("Decoder in", x_dec.shape, skipped_list[-1-level].shape)
             x_dec = dec(x_dec, skipped_list[-1-level])
         x_dec = torch.cat([x_dec, x_in], dim=1)
         out = self.target_modality_conv(x_dec)
@@ -129,5 +127,7 @@ class UNet(BaseModel):
 if __name__ == "__main__":
     model = UNet(bias=True, num_layers=2)
     print(f"Model #parameters {model.count_parameters()}")
-    n, ch, h, w = 4, 1, 28, 28
+    # n, ch, h, w = 4, 1, 28, 28
+    # print(model(torch.rand(n, ch, w, h)).shape)
+    n, ch, h, w = 4, 1, 36, 36
     print(model(torch.rand(n, ch, w, h)).shape)
