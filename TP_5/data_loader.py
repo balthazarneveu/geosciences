@@ -50,6 +50,15 @@ class SegmentationDataset(Dataset):
             self.data_list = self.path_list
 
     def __getitem__(self, index: int) -> Tuple[torch.Tensor, Union[torch.Tensor, None]]:
+        """Access a specific (image, label mask) pair element of the dataset
+
+        Args:
+            index (int): access index
+
+        Returns:
+            Tuple[torch.Tensor, Union[torch.Tensor, None]]: image , label
+            [1, 36, 36] image tensor
+        """
         if self.preloaded:
             img_data, label_data = self.data_list[index]
         else:
