@@ -52,6 +52,7 @@ def training_loop(
     wandb_flag: bool = False,
     output_dir: Path = None
 ):
+    best_accuracy = 0.
     for n_epoch in tqdm(range(config[NB_EPOCHS])):
         current_metrics = {TRAIN: 0., VALIDATION: 0., LR: optimizer.param_groups[0]['lr'], ACCURACY: 0.}
         for phase in [TRAIN, VALIDATION]:
@@ -88,6 +89,11 @@ def training_loop(
                 json.dump(current_metrics, f)
         if wandb_flag:
             wandb.log(current_metrics)
+        if best_accuracy < current_metrics[ACCURACY]:
+            best_accuracy = current_metrics[ACCURACY]
+            if output_dir is not None:
+                print("new best model saved!")
+                torch.save(model.state_dict(), output_dir/"best_model.pt")
     if output_dir is not None:
         torch.save(model.cpu().state_dict(), output_dir/"last_model.pt")
     return model
@@ -128,7 +134,7 @@ def train_main(argv):
     args = parser.parse_args(argv)
     if not WANDB_AVAILABLE:
         args.no_wandb = True
-    device = "cpu" if args.cpu else ("cuda" if torch.cuda.is_available() else "cpu")
+    device = "cpu" if args.cpu else DEVICE
     for exp in args.exp:
         config = get_experiment_config(exp)
         print(config)

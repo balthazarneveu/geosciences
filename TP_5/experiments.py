@@ -77,13 +77,24 @@ def get_experiment_config(exp: int) -> dict:
         }
         config[MODEL][ARCHITECTURE]["channels_extension"] = 32
         config[OPTIMIZER][PARAMS][LR] = 1e-4
+    elif exp == 5:
+        config[NB_EPOCHS] = 200
+        config[DATALOADER][BATCH_SIZE][TRAIN] = 92
+        config[DATALOADER][BATCH_SIZE][VALIDATION] = 92
+        config[SCHEDULER] = REDUCELRONPLATEAU
+        config[SCHEDULER_CONFIGURATION] = {
+            "factor": 0.5,
+            "patience": 5
+        }
+        config[MODEL][ARCHITECTURE]["channels_extension"] = 32
+        config[OPTIMIZER][PARAMS][LR] = 1e-4
     return config
 
 
 def get_training_content(config: dict, device=DEVICE) -> Tuple[torch.nn.Module, torch.optim.Optimizer, dict]:
     model = UNet(**config[MODEL][ARCHITECTURE])
     assert config[MODEL][NAME] == UNet.__name__
-    if True:
+    if False:  # Sanity check on model
         n, ch, h, w = 4, 1, 36, 36
         model(torch.rand(n, ch, w, h))
     config[MODEL][N_PARAMS] = model.count_parameters()
