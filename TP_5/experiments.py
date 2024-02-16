@@ -16,7 +16,7 @@ def get_experiment_config(exp: int) -> dict:
     config = {
         ID: exp,
         NAME: f"{exp:04d}",
-        NB_EPOCHS: 5
+        NB_EPOCHS: 200
     }
     config[DATALOADER] = {
         BATCH_SIZE: {
@@ -31,17 +31,21 @@ def get_experiment_config(exp: int) -> dict:
             LR: 1e-3
         }
     }
+    config[MODEL] = {
+        ARCHITECTURE: dict(
+            ch_in=1,
+            ch_out=1,
+            num_layers=2,
+            k_conv_ds=3,
+            k_conv_us=3
+        ),
+        NAME: "UNet"
+    }
     if exp == 0:
-        config[MODEL] = {
-            ARCHITECTURE: dict(
-                ch_in=1,
-                ch_out=1,
-                num_layers=2,
-                k_conv_ds=3,
-                k_conv_us=3
-            ),
-            NAME: "UNet"
-        }
+        config[NB_EPOCHS] = 5
+    if exp == 1:
+        config[NB_EPOCHS] = 200
+        config[DATALOADER][BATCH_SIZE][TRAIN] = 92
     return config
 
 
