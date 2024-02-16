@@ -9,8 +9,10 @@ from tqdm import tqdm
 from shared import (
     ROOT_DIR, OUTPUT_FOLDER_NAME,
     ID, NAME, NB_EPOCHS,
-    TRAIN, VALIDATION, TEST,
+    TRAIN, VALIDATION, TEST, LR,
+    DEVICE, SCHEDULER_CONFIGURATION, SCHEDULER, REDUCELRONPLATEAU
 )
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 from configuration import WANDBSPACE
 from experiments import get_experiment_config, get_training_content
 WANDB_AVAILABLE = False
@@ -33,12 +35,17 @@ def get_parser(parser: Optional[argparse.ArgumentParser] = None) -> argparse.Arg
 
 
 def training_loop(
-    model, optimizer, dl_dict: dict, config: dict,
-    device: str = "cuda", wandb_flag: bool = False,
+    model,
+    optimizer,
+    dl_dict: dict,
+    config: dict,
+    scheduler=None,
+    device: str = DEVICE,
+    wandb_flag: bool = False,
     output_dir: Path = None
 ):
     for n_epoch in tqdm(range(config[NB_EPOCHS])):
-        current_loss = {TRAIN: 0., VALIDATION: 0.}
+        current_loss = {TRAIN: 0., VALIDATION: 0., LR: optimizer.param_groups[0]['lr']}
         for phase in [TRAIN, VALIDATION]:
             if phase == TRAIN:
                 model.train()
@@ -52,14 +59,14 @@ def training_loop(
                     loss = torch.nn.functional.binary_cross_entropy_with_logits(y_pred.view(-1), y.view(-1))
                     if torch.isnan(loss):
                         continue
-                    # print(loss.item())
                     if phase == TRAIN:
                         loss.backward()
                         optimizer.step()
                 current_loss[phase] += loss.item()
             current_loss[phase] /= (len(dl_dict[phase]))
-        for phase in [VALIDATION]:
-            print(f"{phase}: Epoch {n_epoch} - Loss: {current_loss[phase]:.3e}")
+        print(f"{phase}: Epoch {n_epoch} - Loss: {current_loss[phase]:.3e}")
+        if scheduler is not None and isinstance(scheduler, ReduceLROnPlateau):
+            scheduler.step(current_loss[VALIDATION])
         if output_dir is not None:
             with open(output_dir/f"metrics_{n_epoch}.json", "w") as f:
                 json.dump(current_loss, f)
@@ -70,7 +77,7 @@ def training_loop(
     return model
 
 
-def train(config: dict, output_dir: Path, device: str = "cuda", wandb_flag: bool = False):
+def train(config: dict, output_dir: Path, device: str = DEVICE, wandb_flag: bool = False):
     logging.basicConfig(level=logging.INFO)
     logging.info(f"Training experiment {config[ID]} on device {device}...")
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -86,7 +93,14 @@ def train(config: dict, output_dir: Path, device: str = "cuda", wandb_flag: bool
             tags=["debug"],
             config=config
         )
-    model = training_loop(model, optimizer, dl_dict, config, device=device,
+    scheduler = None
+    if config.get(SCHEDULER, False):
+        scheduler_config = config[SCHEDULER_CONFIGURATION]
+        if config[SCHEDULER] == REDUCELRONPLATEAU:
+            scheduler = ReduceLROnPlateau(optimizer, mode='min', verbose=True, **scheduler_config)
+        else:
+            raise NameError(f"Scheduler {config[SCHEDULER]} not implemented")
+    model = training_loop(model, optimizer, dl_dict, config, scheduler=scheduler, device=device,
                           wandb_flag=wandb_flag, output_dir=output_dir)
 
     if wandb_flag:

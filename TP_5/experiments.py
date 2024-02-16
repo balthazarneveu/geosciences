@@ -3,7 +3,8 @@ from shared import (
     TRAIN, VALIDATION, TEST,
     ARCHITECTURE, MODEL,
     N_PARAMS,
-    OPTIMIZER, LR, PARAMS
+    OPTIMIZER, LR, PARAMS,
+    SCHEDULER, REDUCELRONPLATEAU, SCHEDULER_CONFIGURATION
 )
 from model import UNet
 import torch
@@ -46,6 +47,15 @@ def get_experiment_config(exp: int) -> dict:
     if exp == 1:
         config[NB_EPOCHS] = 200
         config[DATALOADER][BATCH_SIZE][TRAIN] = 92
+    if exp == 2:
+        config[NB_EPOCHS] = 200
+        config[DATALOADER][BATCH_SIZE][TRAIN] = 92
+        config[DATALOADER][BATCH_SIZE][VALIDATION] = 92
+        config[SCHEDULER] = REDUCELRONPLATEAU
+        config[SCHEDULER_CONFIGURATION] = {
+            "factor": 0.5,
+            "patience": 5
+        }
     return config
 
 
