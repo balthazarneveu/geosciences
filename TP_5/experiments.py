@@ -45,10 +45,10 @@ def get_experiment_config(exp: int) -> dict:
     if exp == 0:
         config[NB_EPOCHS] = 5
     elif exp == 1:
-        config[NB_EPOCHS] = 200
-        config[DATALOADER][BATCH_SIZE][TRAIN] = 92
+        config[NB_EPOCHS] = 50
+        config[DATALOADER][BATCH_SIZE][TRAIN] = 256
     elif exp == 2:
-        config[NB_EPOCHS] = 200
+        config[NB_EPOCHS] = 50
         config[DATALOADER][BATCH_SIZE][TRAIN] = 92
         config[DATALOADER][BATCH_SIZE][VALIDATION] = 92
         config[SCHEDULER] = REDUCELRONPLATEAU
@@ -57,7 +57,7 @@ def get_experiment_config(exp: int) -> dict:
             "patience": 5
         }
     elif exp == 3:
-        config[NB_EPOCHS] = 200
+        config[NB_EPOCHS] = 50
         config[DATALOADER][BATCH_SIZE][TRAIN] = 32
         config[DATALOADER][BATCH_SIZE][VALIDATION] = 32
         config[SCHEDULER] = REDUCELRONPLATEAU
@@ -67,7 +67,7 @@ def get_experiment_config(exp: int) -> dict:
         }
         config[MODEL][ARCHITECTURE]["channels_extension"] = 8
     elif exp == 4:
-        config[NB_EPOCHS] = 200
+        config[NB_EPOCHS] = 50
         config[DATALOADER][BATCH_SIZE][TRAIN] = 32
         config[DATALOADER][BATCH_SIZE][VALIDATION] = 32
         config[SCHEDULER] = REDUCELRONPLATEAU
@@ -78,7 +78,7 @@ def get_experiment_config(exp: int) -> dict:
         config[MODEL][ARCHITECTURE]["channels_extension"] = 32
         config[OPTIMIZER][PARAMS][LR] = 1e-4
     elif exp == 5:
-        config[NB_EPOCHS] = 200
+        config[NB_EPOCHS] = 50
         config[DATALOADER][BATCH_SIZE][TRAIN] = 92
         config[DATALOADER][BATCH_SIZE][VALIDATION] = 92
         config[SCHEDULER] = REDUCELRONPLATEAU
@@ -89,7 +89,7 @@ def get_experiment_config(exp: int) -> dict:
         config[MODEL][ARCHITECTURE]["channels_extension"] = 32
         config[OPTIMIZER][PARAMS][LR] = 1e-4
     elif exp == 6:
-        config[NB_EPOCHS] = 200
+        config[NB_EPOCHS] = 50
         config[DATALOADER][BATCH_SIZE][TRAIN] = 32
         config[DATALOADER][BATCH_SIZE][VALIDATION] = 32
         config[SCHEDULER] = REDUCELRONPLATEAU
@@ -100,7 +100,7 @@ def get_experiment_config(exp: int) -> dict:
         config[MODEL][ARCHITECTURE]["channels_extension"] = 32
         config[OPTIMIZER][PARAMS][LR] = 1e-4
     elif exp == 7:
-        config[NB_EPOCHS] = 200
+        config[NB_EPOCHS] = 50
         config[DATALOADER][BATCH_SIZE][TRAIN] = 32
         config[DATALOADER][BATCH_SIZE][VALIDATION] = 32
         config[SCHEDULER] = REDUCELRONPLATEAU
