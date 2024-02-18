@@ -36,15 +36,20 @@ class SpatialSplitConvolutionBlock(torch.nn.Module):
         self, ch_in: int, ch_out: int,
         k_size_h: int = 3,
         k_size_v: int = 3,
-        activation="LeakyReLU",
+        activation=None,
         bias: bool = True
     ) -> None:
         super().__init__()
-        self.conv_h = torch.nn.Conv2d(ch_in, ch_out, (1, k_size_h), padding=k_size_h //
-                                      2, bias=bias, padding_mode="circular")
-        self.conv_v = torch.nn.Conv2d(ch_out, ch_out, (k_size_v, 1), padding=k_size_v //
-                                      2, bias=bias, padding_mode="replicate")
-        self.non_linearity = get_non_linearity(activation)
+        self.conv_h = torch.nn.Conv2d(ch_in, ch_out, (1, k_size_h),
+                                      padding=(0, k_size_h // 2),
+                                      bias=bias, padding_mode="circular")
+        self.conv_v = torch.nn.Conv2d(ch_out, ch_out, (k_size_v, 1),
+                                      padding=(k_size_v //
+                                      2, 0), bias=bias, padding_mode="replicate")
+        if activation is None:
+            self.non_linearity = torch.nn.Identity()
+        else:
+            self.non_linearity = get_non_linearity(activation)
 
     def forward(self, x_in: torch.Tensor) -> torch.Tensor:
         x = self.conv_h(x_in)
@@ -58,22 +63,32 @@ class BaseCNN(BaseModel):
                  ch_in: int = 1,
                  ch_out: int = 1,
                  h_dim: int = 64,
-                 k_size: int = 3,
+                 k_conv_h: int = 3,
+                 k_conv_v: int = 5,
                  activation: str = "LeakyReLU",
                  bias: bool = True
                  ) -> None:
         super().__init__()
         self.conv1 = SpatialSplitConvolutionBlock(
-            ch_in, h_dim, k_size_h=3, k_size_v=5, activation=activation, bias=bias)
+            ch_in, h_dim, k_size_h=k_conv_h, k_size_v=k_conv_v, activation=activation, bias=bias)
         self.conv2 = SpatialSplitConvolutionBlock(
-            h_dim, ch_out, k_size_h=3, k_size_v=5, activation=activation, bias=bias)
-        self.non_linearity = get_non_linearity(activation)
+            h_dim, h_dim, k_size_h=k_conv_h, k_size_v=k_conv_v, activation=activation, bias=bias)
+        self.conv3 = SpatialSplitConvolutionBlock(
+            h_dim, h_dim, k_size_h=k_conv_h, k_size_v=k_conv_v, activation=activation, bias=bias)
+        self.conv4 = SpatialSplitConvolutionBlock(
+            h_dim, h_dim, k_size_h=k_conv_h, k_size_v=k_conv_v, activation=activation, bias=bias)
+        
+        self.conv_out_modality = SpatialSplitConvolutionBlock(
+            h_dim, ch_out, k_size_h=k_conv_h, k_size_v=k_conv_v, activation=None, bias=bias)
 
     def forward(self, x_in: torch.Tensor) -> torch.Tensor:
         x = self.conv1(x_in)
         x = self.conv2(x)
-        x = self.non_linearity(x)
+        x = self.conv3(x)
+        x = self.conv4(x)
+        x = self.conv_out_modality(x)
         return x
+        # return -200*torch.ones_like(x, requires_grad=True)
 
 
 def __check_convnet():

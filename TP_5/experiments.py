@@ -6,7 +6,7 @@ from shared import (
     OPTIMIZER, LR, PARAMS,
     SCHEDULER, REDUCELRONPLATEAU, SCHEDULER_CONFIGURATION
 )
-from model import UNet
+from model import UNet, BaseCNN
 import torch
 from data_loader import get_dataloaders
 from typing import Tuple
@@ -88,12 +88,47 @@ def get_experiment_config(exp: int) -> dict:
         }
         config[MODEL][ARCHITECTURE]["channels_extension"] = 32
         config[OPTIMIZER][PARAMS][LR] = 1e-4
+    elif exp == 6:
+        config[NB_EPOCHS] = 2000
+        config[DATALOADER][BATCH_SIZE][TRAIN] = 32
+        config[DATALOADER][BATCH_SIZE][VALIDATION] = 32
+        config[SCHEDULER] = REDUCELRONPLATEAU
+        config[SCHEDULER_CONFIGURATION] = {
+            "factor": 0.8,
+            "patience": 5
+        }
+        config[MODEL][ARCHITECTURE]["channels_extension"] = 32
+        config[OPTIMIZER][PARAMS][LR] = 1e-4
+    elif exp == 7:
+        config[NB_EPOCHS] = 200
+        config[DATALOADER][BATCH_SIZE][TRAIN] = 32
+        config[DATALOADER][BATCH_SIZE][VALIDATION] = 32
+        config[SCHEDULER] = REDUCELRONPLATEAU
+        config[SCHEDULER_CONFIGURATION] = {
+            "factor": 0.8,
+            "patience": 5
+        }
+        config[OPTIMIZER][PARAMS][LR] = 1e-4
+        config[MODEL] = {
+            ARCHITECTURE: dict(
+                ch_in=1,
+                ch_out=1,
+                h_dim=256,
+                k_conv_h=3,
+                k_conv_v=5
+            ),
+            NAME: "BaseCNN"
+        }
     return config
 
 
 def get_training_content(config: dict, device=DEVICE) -> Tuple[torch.nn.Module, torch.optim.Optimizer, dict]:
-    model = UNet(**config[MODEL][ARCHITECTURE])
-    assert config[MODEL][NAME] == UNet.__name__
+    if config[MODEL][NAME] == UNet.__name__:
+        model = UNet(**config[MODEL][ARCHITECTURE])
+    elif config[MODEL][NAME] == BaseCNN.__name__:
+        model = BaseCNN(**config[MODEL][ARCHITECTURE])
+    else:
+        raise ValueError(f"Unknown model {config[MODEL][NAME]}")
     if False:  # Sanity check on model
         n, ch, h, w = 4, 1, 36, 36
         model(torch.rand(n, ch, w, h))
