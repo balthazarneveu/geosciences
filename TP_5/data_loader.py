@@ -37,6 +37,9 @@ class SegmentationDataset(Dataset):
         img_list = sorted(list(images_path.glob("*.npy")))
         if labels_path is not None:
             label_list = sorted(list(labels_path.glob("*.npy")))
+            label_list = [labels_path/img.name for img in img_list if (labels_path/img.name).exists()]
+            assert len(label_list) == len(
+                img_list), f"Number of images {len(img_list)} and labels {len(label_list)} do not match"
         else:
             label_list = [None for _ in range(len(img_list))]
         print(f"TOTAL ELEMENTS {len(img_list)}")
