@@ -8,6 +8,84 @@ class BaseModel(torch.nn.Module):
     def count_parameters(self):
         return sum(p.numel() for p in self.parameters() if p.requires_grad)
 
+    def receptive_field(self) -> int:
+        """Compute the receptive field of the model
+
+        Returns:
+            int: receptive field
+        """
+        input_tensor = torch.rand(1, 1, 128, 128, requires_grad=True)
+        out = self.forward(input_tensor)
+        grad = torch.zeros_like(out)
+        grad[..., out.shape[-2]//2, out.shape[-1]//2] = torch.nan  # set NaN gradient at the middle of the output
+        out.backward(gradient=grad)
+        self.zero_grad()  # reset to avoid future problems
+        receptive_field_mask = input_tensor.grad.isnan()[0, 0]
+        # print(receptive_field_mask)
+        receptive_field_indexes = torch.where(receptive_field_mask)
+        # print(receptive_field_indexes)
+        # Count NaN in the input
+        receptive_x = 1+receptive_field_indexes[-1].max() - receptive_field_indexes[-1].min()  # Horizontal x
+        receptive_y = 1+receptive_field_indexes[-2].max() - receptive_field_indexes[-2].min()  # Vertical y
+        # print(receptive_field_indexes)
+        return receptive_x, receptive_y
+
+
+class SpatialSplitConvolutionBlock(torch.nn.Module):
+    def __init__(
+        self, ch_in: int, ch_out: int,
+        k_size_h: int = 3,
+        k_size_v: int = 3,
+        activation="LeakyReLU",
+        bias: bool = True
+    ) -> None:
+        super().__init__()
+        self.conv_h = torch.nn.Conv2d(ch_in, ch_out, (1, k_size_h), padding=k_size_h //
+                                      2, bias=bias, padding_mode="circular")
+        self.conv_v = torch.nn.Conv2d(ch_out, ch_out, (k_size_v, 1), padding=k_size_v //
+                                      2, bias=bias, padding_mode="replicate")
+        self.non_linearity = get_non_linearity(activation)
+
+    def forward(self, x_in: torch.Tensor) -> torch.Tensor:
+        x = self.conv_h(x_in)
+        x = self.conv_v(x)
+        x = self.non_linearity(x)
+        return x
+
+
+class BaseCNN(BaseModel):
+    def __init__(self,
+                 ch_in: int = 1,
+                 ch_out: int = 1,
+                 h_dim: int = 64,
+                 k_size: int = 3,
+                 activation: str = "LeakyReLU",
+                 bias: bool = True
+                 ) -> None:
+        super().__init__()
+        self.conv1 = SpatialSplitConvolutionBlock(
+            ch_in, h_dim, k_size_h=3, k_size_v=5, activation=activation, bias=bias)
+        self.conv2 = SpatialSplitConvolutionBlock(
+            h_dim, ch_out, k_size_h=3, k_size_v=5, activation=activation, bias=bias)
+        self.non_linearity = get_non_linearity(activation)
+
+    def forward(self, x_in: torch.Tensor) -> torch.Tensor:
+        x = self.conv1(x_in)
+        x = self.conv2(x)
+        x = self.non_linearity(x)
+        return x
+
+
+def __check_convnet():
+    model = BaseCNN(bias=True)
+    print(f"Model #parameters {model.count_parameters()}")
+    # n, ch, h, w = 4, 1, 28, 28
+    # print(model(torch.rand(n, ch, w, h)).shape)
+    n, ch, h, w = 4, 1, 36, 36
+    print(model(torch.rand(n, ch, w, h)).shape)
+    receptive_x, receptive_y = model.receptive_field()
+    print(f"Receptive field: x={receptive_x}  y={receptive_y}")
+
 
 def get_non_linearity(activation: str):
     if activation == "LeakyReLU":
@@ -124,10 +202,17 @@ class UNet(BaseModel):
         return out
 
 
-if __name__ == "__main__":
+def __check_unet():
     model = UNet(bias=True, num_layers=2)
     print(f"Model #parameters {model.count_parameters()}")
     # n, ch, h, w = 4, 1, 28, 28
     # print(model(torch.rand(n, ch, w, h)).shape)
     n, ch, h, w = 4, 1, 36, 36
     print(model(torch.rand(n, ch, w, h)).shape)
+    receptive_x, receptive_y = model.receptive_field()
+    print(f"UNET: Receptive field: x={receptive_x}  y={receptive_y}")
+
+
+if __name__ == "__main__":
+    __check_convnet()
+    __check_unet()
