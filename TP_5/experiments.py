@@ -133,6 +133,7 @@ def get_training_content(config: dict, device=DEVICE) -> Tuple[torch.nn.Module, 
         n, ch, h, w = 4, 1, 36, 36
         model(torch.rand(n, ch, w, h))
     config[MODEL][N_PARAMS] = model.count_parameters()
+    config[MODEL]["receptive_field"] = model.receptive_field()
     optimizer = torch.optim.Adam(model.parameters(), **config[OPTIMIZER][PARAMS])
     dl_dict = get_dataloaders(config, device=device)
     return model, optimizer, dl_dict

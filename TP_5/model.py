@@ -88,7 +88,6 @@ class BaseCNN(BaseModel):
         x = self.conv4(x)
         x = self.conv_out_modality(x)
         return x
-        # return -200*torch.ones_like(x, requires_grad=True)
 
 
 def __check_convnet():
