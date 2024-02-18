@@ -111,6 +111,7 @@ def train(config: dict, output_dir: Path, device: str = DEVICE, wandb_flag: bool
         import wandb
         wandb.init(
             project=WANDBSPACE,
+            entity="balthazarneveu",
             name=config[NAME],
             tags=["debug"],
             config=config
