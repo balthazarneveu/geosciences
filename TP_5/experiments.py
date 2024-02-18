@@ -89,7 +89,7 @@ def get_experiment_config(exp: int) -> dict:
         config[MODEL][ARCHITECTURE]["channels_extension"] = 32
         config[OPTIMIZER][PARAMS][LR] = 1e-4
     elif exp == 6:
-        config[NB_EPOCHS] = 2000
+        config[NB_EPOCHS] = 200
         config[DATALOADER][BATCH_SIZE][TRAIN] = 32
         config[DATALOADER][BATCH_SIZE][VALIDATION] = 32
         config[SCHEDULER] = REDUCELRONPLATEAU
