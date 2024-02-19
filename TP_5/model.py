@@ -67,28 +67,49 @@ class StackedConvolutions(BaseModel):
                  k_conv_h: int = 3,
                  k_conv_v: int = 5,
                  activation: str = "LeakyReLU",
-                 bias: bool = True
+                 bias: bool = True,
+                 residual: bool = False
                  ) -> None:
         super().__init__()
+        self.residual = residual
         self.conv_in_modality = SpatialSplitConvolutionBlock(
             ch_in, h_dim, k_size_h=k_conv_h, k_size_v=k_conv_v, activation=activation, bias=bias)
-        conv_list = []
-        for _i in range(num_layers-2):
-            conv_list.append(SpatialSplitConvolutionBlock(
-                h_dim, h_dim, k_size_h=k_conv_h, k_size_v=k_conv_v, activation=activation, bias=bias))
-        self.conv_stack = torch.nn.Sequential(*conv_list)
+        if not residual:
+            conv_list = []
+            for _i in range(num_layers-2):
+                conv_list.append(SpatialSplitConvolutionBlock(
+                    h_dim, h_dim, k_size_h=k_conv_h, k_size_v=k_conv_v, activation=activation, bias=bias))
+            self.conv_stack = torch.nn.Sequential(*conv_list)
+        else:
+            num_temp_layers = num_layers-2
+            assert num_temp_layers % 2 == 0, "Number of layers should be even"
+            self.conv_stack = torch.nn.modules.ModuleList()
+            for _i in range(num_temp_layers//2):
+                for activ in [activation, None]:
+                    self.conv_stack.append(
+                        SpatialSplitConvolutionBlock(
+                            h_dim, h_dim, k_size_h=k_conv_h, k_size_v=k_conv_v, activation=activ, bias=bias))
+            self.non_linearity = get_non_linearity(activation)
         self.conv_out_modality = SpatialSplitConvolutionBlock(
             h_dim, ch_out, k_size_h=k_conv_h, k_size_v=k_conv_v, activation=None, bias=bias)
 
     def forward(self, x_in: torch.Tensor) -> torch.Tensor:
         x = self.conv_in_modality(x_in)
-        x = self.conv_stack(x)
+        if self.residual:
+            for idx in range(len(self.conv_stack)//2):
+                y = self.conv_stack[2*idx](x)
+                y = self.conv_stack[2*idx+1](y)
+                x = x + y
+                x = self.non_linearity(x)
+        else:
+            x = self.conv_stack(x)
         x = self.conv_out_modality(x)
         return x
 
 
 def __check_convnet():
-    model = StackedConvolutions(bias=True)
+    model = StackedConvolutions(bias=True, residual=True, num_layers=6, h_dim=16)
+    print(model)
     print(f"Model #parameters {model.count_parameters()}")
     # n, ch, h, w = 4, 1, 28, 28
     # print(model(torch.rand(n, ch, w, h)).shape)
