@@ -20,7 +20,8 @@ def experiment_stacked_convolutions(
     h_dim: int = 256,
     num_layers: int = 5,
     k_conv_h: int = 3,
-    k_conv_v: int = 5
+    k_conv_v: int = 5,
+    residual: bool = False
 ) -> dict:
     config[NB_EPOCHS] = n
     config[DATALOADER][BATCH_SIZE][TRAIN] = b
@@ -38,7 +39,8 @@ def experiment_stacked_convolutions(
             h_dim=h_dim,
             num_layers=num_layers,
             k_conv_h=k_conv_h,
-            k_conv_v=k_conv_v
+            k_conv_v=k_conv_v,
+            residual=residual
         ),
         NAME: "StackedConvolutions"
     }
@@ -139,6 +141,14 @@ def get_experiment_config(exp: int) -> dict:
         experiment_stacked_convolutions(config, num_layers=4, h_dim=256, n=50)
     elif exp == 105:
         experiment_stacked_convolutions(config, num_layers=5, h_dim=256, n=50)
+    elif exp == 106:
+        experiment_stacked_convolutions(config, num_layers=6, h_dim=16, n=50, residual=True)
+    elif exp == 107:
+        experiment_stacked_convolutions(config, num_layers=6, h_dim=32, n=50, residual=True)
+    elif exp == 108:
+        experiment_stacked_convolutions(config, num_layers=6, h_dim=64, n=50, residual=True)
+    elif exp == 109:
+        experiment_stacked_convolutions(config, num_layers=8, h_dim=16, n=50, residual=True)
     return config
 
 
