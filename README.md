@@ -7,7 +7,7 @@
 - [TP2: pressure tests classification](/TP_2/code/TP_2.ipynb)
 - [TP3: raw data processing](/TP_3/TP_3.ipynb)
 - [TP4: planes estimations](/TP_4/planes_synthesis.ipynb)
-- TP5: segmentation.
+- [TP5: segmentation](/TP_5/segmentation.ipynb)
 
 # :scroll: Project
 - TBD

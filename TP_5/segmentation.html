@@ -7497,7 +7497,28 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="Architectures">Architectures<a class="anchor-link" href="#Architectures">¶</a></h3><h4 id="Stacked-convolution-(single-scale)">Stacked convolution (single scale)<a class="anchor-link" href="#Stacked-convolution-(single-scale)">¶</a></h4><ul>
+<h2 id="Dataset-exploration">Dataset exploration<a class="anchor-link" href="#Dataset-exploration">¶</a></h2><p>Pairs of patches and annotations (areas to segment).</p>
+<ul>
+<li>Train set: 7211 patches from 12 wells.</li>
+<li>Validation set: 2463 patches from 3 wells (majority in well 13)</li>
+</ul>
+<p><strong>Observations</strong></p>
+<ul>
+<li>At first sight, the regions we're trying to segment look like think dark lines.</li>
+<li>Sometimes the positive areas are spread on both sides of the image (due to the circular nature of the well images).</li>
+</ul>
+<p><img alt="" src="figures/dataset_samples.png"/></p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="Architectures">Architectures<a class="anchor-link" href="#Architectures">¶</a></h2><h4 id="Stacked-convolution-(single-scale)">Stacked convolution (single scale)<a class="anchor-link" href="#Stacked-convolution-(single-scale)">¶</a></h4><ul>
 <li>Flexible design with a parameterized amount of layers</li>
 <li>Base convolution block is a separable convolution directionwise (H/V)<ul>
 <li>The horizontal convolution pads using the "circular" convolution option which allows dealing with the specificity of dwell images.</li>
@@ -7520,8 +7541,21 @@ a.anchor-link {
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h4 id="UNet">UNet<a class="anchor-link" href="#UNet">¶</a></h4><ul>
-<li>3 scales</li>
+<li>3 scales<ul>
+<li>$(36, 36) \rightarrow (18, 18) \rightarrow (9, 9)$</li>
 </ul>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 </div>
 </div>
 </div>
