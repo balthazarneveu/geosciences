@@ -6,18 +6,49 @@ from shared import (
     OPTIMIZER, LR, PARAMS,
     SCHEDULER, REDUCELRONPLATEAU, SCHEDULER_CONFIGURATION
 )
-from model import UNet, BaseCNN
+from model import UNet, StackedConvolutions
 import torch
 from data_loader import get_dataloaders
 from typing import Tuple
 from shared import DEVICE
 
 
-def get_experiment_config(exp: int) -> dict:
+def experiment_stacked_convolutions(
+    config: dict,
+    b: int = 32,
+    n: int = 50,
+    h_dim: int = 256,
+    num_layers: int = 5,
+    k_conv_h: int = 3,
+    k_conv_v: int = 5
+) -> dict:
+    config[NB_EPOCHS] = n
+    config[DATALOADER][BATCH_SIZE][TRAIN] = b
+    config[DATALOADER][BATCH_SIZE][VALIDATION] = b
+    config[SCHEDULER] = REDUCELRONPLATEAU
+    config[SCHEDULER_CONFIGURATION] = {
+        "factor": 0.8,
+        "patience": 5
+    }
+    config[OPTIMIZER][PARAMS][LR] = 1e-4
+    config[MODEL] = {
+        ARCHITECTURE: dict(
+            ch_in=1,
+            ch_out=1,
+            h_dim=h_dim,
+            num_layers=num_layers,
+            k_conv_h=k_conv_h,
+            k_conv_v=k_conv_v
+        ),
+        NAME: "StackedConvolutions"
+    }
+
+
+def default_experiment(exp: int) -> dict:
     config = {
         ID: exp,
         NAME: f"{exp:04d}",
-        NB_EPOCHS: 200
+        NB_EPOCHS: 50
     }
     config[DATALOADER] = {
         BATCH_SIZE: {
@@ -42,13 +73,16 @@ def get_experiment_config(exp: int) -> dict:
         ),
         NAME: "UNet"
     }
+    return config
+
+
+def get_experiment_config(exp: int) -> dict:
+    config = default_experiment(exp)
     if exp == 0:
         config[NB_EPOCHS] = 5
     elif exp == 1:
-        config[NB_EPOCHS] = 50
         config[DATALOADER][BATCH_SIZE][TRAIN] = 256
     elif exp == 2:
-        config[NB_EPOCHS] = 50
         config[DATALOADER][BATCH_SIZE][TRAIN] = 92
         config[DATALOADER][BATCH_SIZE][VALIDATION] = 92
         config[SCHEDULER] = REDUCELRONPLATEAU
@@ -57,7 +91,6 @@ def get_experiment_config(exp: int) -> dict:
             "patience": 5
         }
     elif exp == 3:
-        config[NB_EPOCHS] = 50
         config[DATALOADER][BATCH_SIZE][TRAIN] = 32
         config[DATALOADER][BATCH_SIZE][VALIDATION] = 32
         config[SCHEDULER] = REDUCELRONPLATEAU
@@ -67,7 +100,6 @@ def get_experiment_config(exp: int) -> dict:
         }
         config[MODEL][ARCHITECTURE]["channels_extension"] = 8
     elif exp == 4:
-        config[NB_EPOCHS] = 50
         config[DATALOADER][BATCH_SIZE][TRAIN] = 32
         config[DATALOADER][BATCH_SIZE][VALIDATION] = 32
         config[SCHEDULER] = REDUCELRONPLATEAU
@@ -78,7 +110,6 @@ def get_experiment_config(exp: int) -> dict:
         config[MODEL][ARCHITECTURE]["channels_extension"] = 32
         config[OPTIMIZER][PARAMS][LR] = 1e-4
     elif exp == 5:
-        config[NB_EPOCHS] = 50
         config[DATALOADER][BATCH_SIZE][TRAIN] = 92
         config[DATALOADER][BATCH_SIZE][VALIDATION] = 92
         config[SCHEDULER] = REDUCELRONPLATEAU
@@ -89,7 +120,6 @@ def get_experiment_config(exp: int) -> dict:
         config[MODEL][ARCHITECTURE]["channels_extension"] = 32
         config[OPTIMIZER][PARAMS][LR] = 1e-4
     elif exp == 6:
-        config[NB_EPOCHS] = 50
         config[DATALOADER][BATCH_SIZE][TRAIN] = 32
         config[DATALOADER][BATCH_SIZE][VALIDATION] = 32
         config[SCHEDULER] = REDUCELRONPLATEAU
@@ -99,34 +129,24 @@ def get_experiment_config(exp: int) -> dict:
         }
         config[MODEL][ARCHITECTURE]["channels_extension"] = 32
         config[OPTIMIZER][PARAMS][LR] = 1e-4
-    elif exp == 7:
-        config[NB_EPOCHS] = 50
-        config[DATALOADER][BATCH_SIZE][TRAIN] = 32
-        config[DATALOADER][BATCH_SIZE][VALIDATION] = 32
-        config[SCHEDULER] = REDUCELRONPLATEAU
-        config[SCHEDULER_CONFIGURATION] = {
-            "factor": 0.8,
-            "patience": 5
-        }
-        config[OPTIMIZER][PARAMS][LR] = 1e-4
-        config[MODEL] = {
-            ARCHITECTURE: dict(
-                ch_in=1,
-                ch_out=1,
-                h_dim=256,
-                k_conv_h=3,
-                k_conv_v=5
-            ),
-            NAME: "BaseCNN"
-        }
+    elif exp == 100:
+        experiment_stacked_convolutions(config, num_layers=3, h_dim=64, n=50)
+    elif exp == 101:
+        experiment_stacked_convolutions(config, num_layers=5, h_dim=64, n=50)
+    elif exp == 103:
+        experiment_stacked_convolutions(config, num_layers=3, h_dim=256, n=50)
+    elif exp == 104:
+        experiment_stacked_convolutions(config, num_layers=4, h_dim=256, n=50)
+    elif exp == 105:
+        experiment_stacked_convolutions(config, num_layers=5, h_dim=256, n=50)
     return config
 
 
 def get_training_content(config: dict, device=DEVICE) -> Tuple[torch.nn.Module, torch.optim.Optimizer, dict]:
     if config[MODEL][NAME] == UNet.__name__:
         model = UNet(**config[MODEL][ARCHITECTURE])
-    elif config[MODEL][NAME] == BaseCNN.__name__:
-        model = BaseCNN(**config[MODEL][ARCHITECTURE])
+    elif config[MODEL][NAME] == StackedConvolutions.__name__:
+        model = StackedConvolutions(**config[MODEL][ARCHITECTURE])
     else:
         raise ValueError(f"Unknown model {config[MODEL][NAME]}")
     if False:  # Sanity check on model
