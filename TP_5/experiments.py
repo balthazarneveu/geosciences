@@ -135,6 +135,8 @@ def get_experiment_config(exp: int) -> dict:
         experiment_stacked_convolutions(config, num_layers=3, h_dim=64, n=50)
     elif exp == 101:
         experiment_stacked_convolutions(config, num_layers=5, h_dim=64, n=50)
+    elif exp == 102:
+        experiment_stacked_convolutions(config, num_layers=5, h_dim=32, n=50)
     elif exp == 103:
         experiment_stacked_convolutions(config, num_layers=3, h_dim=256, n=50)
     elif exp == 104:
@@ -149,6 +151,8 @@ def get_experiment_config(exp: int) -> dict:
         experiment_stacked_convolutions(config, num_layers=6, h_dim=64, n=50, residual=True)
     elif exp == 109:
         experiment_stacked_convolutions(config, num_layers=8, h_dim=16, n=50, residual=True)
+    else:
+        raise ValueError(f"Unknown experiment {exp}")
     return config
 
 
