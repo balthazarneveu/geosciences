@@ -110,7 +110,7 @@ if __name__ == "__main__":
         for idx, mode in enumerate([TRAIN, VALIDATION]):
             img, lab = next(iter(dl_dict[mode]))
             plt.subplot(2, 4, run_index*4+1+2*idx)
-            plt.imshow(img.view(-1, img.shape[-1]).cpu().numpy(), cmap="hot")
+            plt.imshow(img.view(-1, img.shape[-1]).cpu().numpy(), cmap="gray")
             plt.title(mode + f" input - run {run_index}")
             plt.subplot(2, 4, run_index*4+1+2*idx+1)
             plt.imshow(lab.view(-1, img.shape[-1]).cpu().numpy())
