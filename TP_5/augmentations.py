@@ -43,9 +43,10 @@ def augment_flip(
 
     """
     if flip is None:
-        flip = torch.randint(0, 1, (2,))
+        flip = torch.randint(0, 2, (2,))
     flipped_img = img
     flipped_lab = lab
+    print(flip)
     if flip[0] > 0:
         flipped_img = torch.flip(flipped_img, (-1,))
         flipped_lab = torch.flip(flipped_lab, (-1,))
