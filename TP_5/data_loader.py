@@ -83,22 +83,35 @@ class SegmentationDataset(Dataset):
 
 
 def get_dataloaders(config: dict, device: str = DEVICE):
+    augmentation_list = config[DATALOADER].get(AUGMENTATION_LIST, [])
+    if len(augmentation_list) > 0:
+        print(f"Using augmentations {augmentation_list}")
     dl_train = SegmentationDataset(
         ROOT_DIR/"data"/TRAIN/IMAGES_FOLDER,
         labels_path=ROOT_DIR/"data"/TRAIN/LABELS_FOLDER,
-        device=device)
+        augmentation_list=augmentation_list,
+        device=device
+    )
     dl_valid = SegmentationDataset(
         ROOT_DIR/"data"/VALIDATION/IMAGES_FOLDER,
         labels_path=ROOT_DIR/"data"/VALIDATION/LABELS_FOLDER,
-        device=device)
+        device=device
+    )
     # dl_test = SegmentationDataset(
     #     ROOT_DIR/"data"/TEST/IMAGES_FOLDER,
     #     device=device
     # )
-    augmentation_list = config.get(, [])
     dl_dict = {
-        TRAIN: DataLoader(dl_train, shuffle=True, batch_size=config[DATALOADER][BATCH_SIZE][TRAIN]),
-        VALIDATION: DataLoader(dl_valid, shuffle=False, batch_size=config[DATALOADER][BATCH_SIZE][VALIDATION]),
+        TRAIN: DataLoader(
+            dl_train,
+            shuffle=True,
+            batch_size=config[DATALOADER][BATCH_SIZE][TRAIN],
+        ),
+        VALIDATION: DataLoader(
+            dl_valid,
+            shuffle=False,
+            batch_size=config[DATALOADER][BATCH_SIZE][VALIDATION]
+        ),
         # TEST: DataLoader(dl_test, shuffle=False, batch_size=config[DATALOADER][BATCH_SIZE][TEST])
     }
     return dl_dict
