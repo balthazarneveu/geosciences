@@ -10,7 +10,7 @@ from shared import (
     ROOT_DIR, OUTPUT_FOLDER_NAME,
     ID, NAME, NB_EPOCHS,
     TRAIN, VALIDATION, TEST, LR,
-    ACCURACY,
+    ACCURACY, PRECISION, RECALL, F1_SCORE,
     DEVICE, SCHEDULER_CONFIGURATION, SCHEDULER, REDUCELRONPLATEAU
 )
 from torch.optim.lr_scheduler import ReduceLROnPlateau
@@ -42,6 +42,35 @@ def compute_accuracy(y_pred: torch.Tensor, y_true: torch.Tensor, threshold: floa
     return accuracy.item()
 
 
+def compute_metrics(y_pred: torch.Tensor, y_true: torch.Tensor, threshold: float = 0.5):
+    # Convert predictions to binary (0 or 1) based on the threshold
+    y_pred_bin = (torch.sigmoid(y_pred) > threshold).float()
+    # True Positives, False Positives, True Negatives, False Negatives
+    true_positive = ((y_pred_bin == 1) & (y_true == 1)).float().sum()
+    false_positive = ((y_pred_bin == 1) & (y_true == 0)).float().sum()
+    true_negative = ((y_pred_bin == 0) & (y_true == 0)).float().sum()
+    false_negative = ((y_pred_bin == 0) & (y_true == 1)).float().sum()
+
+    # Precision
+    precision = true_positive / (true_positive + false_positive) if (true_positive + false_positive) > 0 else 0.0
+
+    # Recall -> Accuracy of positive areas!
+    recall = true_positive / (true_positive + false_negative) if (true_positive + false_negative) > 0 else 0.0
+
+    # F1 Score
+    f1_score = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0.0
+
+    # Accuracy
+    accuracy = (true_positive + true_negative) / (true_positive + false_positive + true_negative + false_negative)
+
+    return {
+        ACCURACY: accuracy,
+        PRECISION: precision,
+        RECALL: recall,
+        F1_SCORE: f1_score,
+    }
+
+
 def training_loop(
     model,
     optimizer,
@@ -54,7 +83,12 @@ def training_loop(
 ):
     best_accuracy = 0.
     for n_epoch in tqdm(range(config[NB_EPOCHS])):
-        current_metrics = {TRAIN: 0., VALIDATION: 0., LR: optimizer.param_groups[0]['lr'], ACCURACY: 0.}
+        current_metrics = {TRAIN: 0., VALIDATION: 0., LR: optimizer.param_groups[0]['lr'],
+                           ACCURACY: 0.,
+                           PRECISION: 0.,
+                           RECALL: 0.,
+                           F1_SCORE: 0.
+                           }
         for phase in [TRAIN, VALIDATION]:
             if phase == TRAIN:
                 model.train()
@@ -74,14 +108,24 @@ def training_loop(
                         optimizer.step()
                 current_metrics[phase] += loss.item()
                 if phase == VALIDATION:
-                    accuracy = compute_accuracy(y_pred.view(-1), y.view(-1))
-                    current_metrics[ACCURACY] += accuracy
+                    # accuracy = compute_accuracy(y_pred.view(-1), y.view(-1))
+                    # current_metrics[ACCURACY] += accuracy
+                    metrics_on_batch = compute_metrics(y_pred.view(-1), y.view(-1))
+                    for k, v in metrics_on_batch.items():
+                        current_metrics[k] += v
+
             current_metrics[phase] /= (len(dl_dict[phase]))
             if phase == VALIDATION:
-                current_metrics[ACCURACY] /= (len(dl_dict[phase]))
+                # current_metrics[ACCURACY] /= (len(dl_dict[phase]))
+                for k, v in metrics_on_batch.items():
+                    current_metrics[k] /= (len(dl_dict[phase]))
+                    current_metrics[k] = current_metrics[k].item()
         print(
             f"{phase}: Epoch {n_epoch} - Loss: {current_metrics[phase]:.3e} " +
-            f"Accuracy: {current_metrics[ACCURACY]:.3%}")
+            f"Accuracy: {current_metrics[ACCURACY]:.3%}",
+            f"Precision: {current_metrics[PRECISION]:.3%} ",
+            f"Recall: {current_metrics[RECALL]:.3%} ",
+            f"F1 Score: {current_metrics[F1_SCORE]:.3%} ")
         if scheduler is not None and isinstance(scheduler, ReduceLROnPlateau):
             scheduler.step(current_metrics[VALIDATION])
         if output_dir is not None:
