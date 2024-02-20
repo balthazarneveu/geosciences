@@ -5,7 +5,7 @@ from shared import (
     N_PARAMS,
     OPTIMIZER, LR, PARAMS,
     SCHEDULER, REDUCELRONPLATEAU, SCHEDULER_CONFIGURATION,
-    AUGMENTATION_LIST, AUGMENTATION_H_ROLL_WRAPPED
+    AUGMENTATION_LIST, AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP
 )
 from model import UNet, StackedConvolutions
 import torch
@@ -156,6 +156,14 @@ def get_experiment_config(exp: int) -> dict:
         # same as 105 but with augmentations
         experiment_stacked_convolutions(config, num_layers=5, h_dim=256, n=50)
         config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED]
+    elif exp == 111:
+        # same as 105 but with augmentations
+        experiment_stacked_convolutions(config, num_layers=5, h_dim=256, n=50)
+        config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_FLIP]
+    elif exp == 112:
+        # same as 105 but with augmentations
+        experiment_stacked_convolutions(config, num_layers=5, h_dim=256, n=50)
+        config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
     else:
         raise ValueError(f"Unknown experiment {exp}")
     return config

@@ -3,9 +3,10 @@ from torch.utils.data import DataLoader, Dataset
 from shared import (
     ROOT_DIR, TRAIN, VALIDATION, TEST, DATALOADER, BATCH_SIZE, DEVICE,
     AUGMENTATION_LIST,
-    AUGMENTATION_H_ROLL_WRAPPED
+    AUGMENTATION_H_ROLL_WRAPPED,
+    AUGMENTATION_FLIP
 )
-from augmentations import augment_wrap_roll
+from augmentations import augment_wrap_roll, augment_flip
 from typing import Tuple, Optional, Union
 from pathlib import Path
 import numpy as np
@@ -76,6 +77,8 @@ class SegmentationDataset(Dataset):
             label_data = load_npy_files(self.data_list[index][1])
         if AUGMENTATION_H_ROLL_WRAPPED in self.augmentation_list:
             img_data, label_data = augment_wrap_roll(img_data, label_data)
+        if AUGMENTATION_FLIP in self.augmentation_list:
+            img_data, label_data = augment_flip(img_data, label_data)
         return (img_data.to(self.device), label_data.to(self.device))
 
     def __len__(self):
