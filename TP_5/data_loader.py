@@ -1,6 +1,11 @@
 import torch
 from torch.utils.data import DataLoader, Dataset
-from shared import ROOT_DIR, TRAIN, VALIDATION, TEST, DATALOADER, BATCH_SIZE, DEVICE
+from shared import (
+    ROOT_DIR, TRAIN, VALIDATION, TEST, DATALOADER, BATCH_SIZE, DEVICE,
+    AUGMENTATION_LIST,
+    AUGMENTATION_H_ROLL_WRAPPED
+)
+from augmentations import augment_wrap_roll
 from typing import Tuple, Optional, Union
 from pathlib import Path
 import numpy as np
@@ -30,9 +35,11 @@ class SegmentationDataset(Dataset):
         images_path: Path = ROOT_DIR/"data"/TRAIN/IMAGES_FOLDER,
         labels_path: Optional[Path] = None,
         device: str = DEVICE,
-        preloaded: bool = False
+        preloaded: bool = False,
+        augmentation_list: Optional[list] = []
     ):
         self.preloaded = preloaded
+        self.augmentation_list = augmentation_list
         self.device = device
         img_list = sorted(list(images_path.glob("*.npy")))
         if labels_path is not None:
@@ -67,6 +74,8 @@ class SegmentationDataset(Dataset):
         else:
             img_data = load_npy_files(self.data_list[index][0])
             label_data = load_npy_files(self.data_list[index][1])
+        if AUGMENTATION_H_ROLL_WRAPPED in self.augmentation_list:
+            img_data, label_data = augment_wrap_roll(img_data, label_data)
         return (img_data.to(self.device), label_data.to(self.device))
 
     def __len__(self):
@@ -86,6 +95,7 @@ def get_dataloaders(config: dict, device: str = DEVICE):
     #     ROOT_DIR/"data"/TEST/IMAGES_FOLDER,
     #     device=device
     # )
+    augmentation_list = config.get(, [])
     dl_dict = {
         TRAIN: DataLoader(dl_train, shuffle=True, batch_size=config[DATALOADER][BATCH_SIZE][TRAIN]),
         VALIDATION: DataLoader(dl_valid, shuffle=False, batch_size=config[DATALOADER][BATCH_SIZE][VALIDATION]),
