@@ -13,6 +13,7 @@ from shared import (
     ACCURACY, PRECISION, RECALL, F1_SCORE,
     DEVICE, SCHEDULER_CONFIGURATION, SCHEDULER, REDUCELRONPLATEAU
 )
+from metrics import compute_metrics
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from configuration import WANDBSPACE
 from experiments import get_experiment_config, get_training_content
@@ -33,42 +34,6 @@ def get_parser(parser: Optional[argparse.ArgumentParser] = None) -> argparse.Arg
     parser.add_argument("-nowb", "--no-wandb", action="store_true", help="Disable weights and biases")
     parser.add_argument("--cpu", action="store_true", help="Force CPU")
     return parser
-
-
-def compute_accuracy(y_pred: torch.Tensor, y_true: torch.Tensor, threshold: float = 0.5):
-    y_pred_thresh = (torch.sigmoid(y_pred) > threshold).float()
-    correct_predictions = (y_pred_thresh == y_true).float().sum()
-    accuracy = correct_predictions / y_true.numel()
-    return accuracy.item()
-
-
-def compute_metrics(y_pred: torch.Tensor, y_true: torch.Tensor, threshold: float = 0.5):
-    # Convert predictions to binary (0 or 1) based on the threshold
-    y_pred_bin = (torch.sigmoid(y_pred) > threshold).float()
-    # True Positives, False Positives, True Negatives, False Negatives
-    true_positive = ((y_pred_bin == 1) & (y_true == 1)).float().sum()
-    false_positive = ((y_pred_bin == 1) & (y_true == 0)).float().sum()
-    true_negative = ((y_pred_bin == 0) & (y_true == 0)).float().sum()
-    false_negative = ((y_pred_bin == 0) & (y_true == 1)).float().sum()
-
-    # Precision
-    precision = true_positive / (true_positive + false_positive) if (true_positive + false_positive) > 0 else 0.0
-
-    # Recall -> Accuracy of positive areas!
-    recall = true_positive / (true_positive + false_negative) if (true_positive + false_negative) > 0 else 0.0
-
-    # F1 Score
-    f1_score = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0.0
-
-    # Accuracy
-    accuracy = (true_positive + true_negative) / (true_positive + false_positive + true_negative + false_negative)
-
-    return {
-        ACCURACY: accuracy,
-        PRECISION: precision,
-        RECALL: recall,
-        F1_SCORE: f1_score,
-    }
 
 
 def training_loop(
@@ -99,7 +64,8 @@ def training_loop(
                 optimizer.zero_grad()
                 with torch.set_grad_enabled(phase == TRAIN):
                     y_pred = model(x)
-                    loss = torch.nn.functional.binary_cross_entropy_with_logits(y_pred.view(-1), y.view(-1))
+                    if config.get("loss", "bce") == "bce":
+                        loss = torch.nn.functional.binary_cross_entropy_with_logits(y_pred.view(-1), y.view(-1))
 
                     if torch.isnan(loss):
                         continue
@@ -108,15 +74,12 @@ def training_loop(
                         optimizer.step()
                 current_metrics[phase] += loss.item()
                 if phase == VALIDATION:
-                    # accuracy = compute_accuracy(y_pred.view(-1), y.view(-1))
-                    # current_metrics[ACCURACY] += accuracy
                     metrics_on_batch = compute_metrics(y_pred.view(-1), y.view(-1))
                     for k, v in metrics_on_batch.items():
                         current_metrics[k] += v
 
             current_metrics[phase] /= (len(dl_dict[phase]))
             if phase == VALIDATION:
-                # current_metrics[ACCURACY] /= (len(dl_dict[phase]))
                 for k, v in metrics_on_batch.items():
                     current_metrics[k] /= (len(dl_dict[phase]))
                     try:
@@ -130,7 +93,7 @@ def training_loop(
             f"Accuracy: {current_metrics[ACCURACY]:.3%}",
             f"Precision: {current_metrics[PRECISION]:.3%} ",
             f"Recall: {current_metrics[RECALL]:.3%} ",
-            f"F1 Score: {current_metrics[F1_SCORE]:.3%} ")
+            f"Dice coefficient: {current_metrics[F1_SCORE]:.3%} ")
         if scheduler is not None and isinstance(scheduler, ReduceLROnPlateau):
             scheduler.step(current_metrics[VALIDATION])
         if output_dir is not None:

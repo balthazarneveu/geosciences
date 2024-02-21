@@ -5,7 +5,8 @@ from shared import (
     N_PARAMS,
     OPTIMIZER, LR, PARAMS,
     SCHEDULER, REDUCELRONPLATEAU, SCHEDULER_CONFIGURATION,
-    AUGMENTATION_LIST, AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP
+    AUGMENTATION_LIST, AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP,
+    LOSS, LOSS_BCE, LOSS_DICE, LOSS_BCE_WEIGHTED
 )
 from model import UNet, StackedConvolutions
 import torch
@@ -76,6 +77,7 @@ def default_experiment(exp: int) -> dict:
         ),
         NAME: "UNet"
     }
+    config[LOSS] = LOSS_BCE
     return config
 
 
