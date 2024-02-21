@@ -223,6 +223,44 @@ def get_experiment_config(exp: int) -> dict:
         vanilla_experiment(config, n=50, b=32)
         config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
         config[LOSS] = LOSS_DICE
+    elif exp == 306:  # similar as the stacked convolutions series
+        vanilla_experiment(config, n=50, b=32)
+        config[OPTIMIZER][PARAMS][LR] = 1e-4
+        config[LOSS] = LOSS_BCE
+        config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
+    elif exp == 400:
+        config[DATALOADER][BATCH_SIZE][TRAIN] = 32
+        config[DATALOADER][BATCH_SIZE][VALIDATION] = 32
+        config[SCHEDULER] = REDUCELRONPLATEAU
+        config[SCHEDULER_CONFIGURATION] = {
+            "factor": 0.8,
+            "patience": 5
+        }
+        config[MODEL][ARCHITECTURE]["channels_extension"] = 32
+        config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
+        config[OPTIMIZER][PARAMS][LR] = 1e-4
+    elif exp == 401:
+        config[DATALOADER][BATCH_SIZE][TRAIN] = 128
+        config[DATALOADER][BATCH_SIZE][VALIDATION] = 128
+        config[SCHEDULER] = REDUCELRONPLATEAU
+        config[SCHEDULER_CONFIGURATION] = {
+            "factor": 0.8,
+            "patience": 5
+        }
+        config[MODEL][ARCHITECTURE]["channels_extension"] = 32
+        config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
+        config[OPTIMIZER][PARAMS][LR] = 1e-4
+    elif exp == 402:
+        config[DATALOADER][BATCH_SIZE][TRAIN] = 128
+        config[DATALOADER][BATCH_SIZE][VALIDATION] = 128
+        config[SCHEDULER] = REDUCELRONPLATEAU
+        config[SCHEDULER_CONFIGURATION] = {
+            "factor": 0.8,
+            "patience": 5
+        }
+        config[MODEL][ARCHITECTURE]["channels_extension"] = 64
+        config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
+        config[OPTIMIZER][PARAMS][LR] = 1e-4
     else:
         raise ValueError(f"Unknown experiment {exp}")
     return config
