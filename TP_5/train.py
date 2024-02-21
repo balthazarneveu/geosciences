@@ -119,7 +119,12 @@ def training_loop(
                 # current_metrics[ACCURACY] /= (len(dl_dict[phase]))
                 for k, v in metrics_on_batch.items():
                     current_metrics[k] /= (len(dl_dict[phase]))
-                    current_metrics[k] = current_metrics[k].item()
+                    try:
+                        current_metrics[k] = current_metrics[k].item()
+                    except Exception as e:
+                        # Sometimes the metrics are already a float (like 0), so we just pass
+                        # print(k, current_metrics[k], e)
+                        pass
         print(
             f"{phase}: Epoch {n_epoch} - Loss: {current_metrics[phase]:.3e} " +
             f"Accuracy: {current_metrics[ACCURACY]:.3%}",
