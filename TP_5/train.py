@@ -69,6 +69,7 @@ def training_loop(
                     y_pred = model(x)
                     loss = compute_loss(y_pred, y, mode=config.get(LOSS, LOSS_BCE))
                     if torch.isnan(loss):
+                        print(f"Loss is NaN at epoch {n_epoch} and phase {phase}!")
                         continue
                     if phase == TRAIN:
                         loss.backward()

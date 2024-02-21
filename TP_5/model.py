@@ -58,6 +58,40 @@ class SpatialSplitConvolutionBlock(torch.nn.Module):
         return x
 
 
+class VanillaConvolutionStack(BaseModel):
+    def __init__(self,
+                 ch_in: int = 1,
+                 ch_out: int = 1,
+                 h_dim: int = [64, 64, 128, 128],
+                 activation: str = "ReLU"
+                 ) -> None:
+        super().__init__()
+        conv_dimensions = [ch_in] + h_dim + [ch_out]
+        conv_list = []
+        num_layers = len(conv_dimensions)-1
+        for idx in range(num_layers):
+            ch_inp, ch_outp = conv_dimensions[idx], conv_dimensions[idx+1]
+            conv_list.append(BaseConvolutionBlock(ch_inp, ch_outp, k_size=3,
+                             activation=None if idx == num_layers-1 else activation, bias=True))
+        self.conv_stack = torch.nn.Sequential(*conv_list)
+
+    def forward(self, x_in: torch.Tensor) -> torch.Tensor:
+        x = self.conv_stack(x_in)
+        return x
+
+
+def __check_convnet_vanilla():
+    model = VanillaConvolutionStack()
+    print(model)
+    print(f"Model #parameters {model.count_parameters()}")
+    # n, ch, h, w = 4, 1, 28, 28
+    # print(model(torch.rand(n, ch, w, h)).shape)
+    n, ch, h, w = 4, 1, 36, 36
+    print(model(torch.rand(n, ch, w, h)).shape)
+    receptive_x, receptive_y = model.receptive_field()
+    print(f"Receptive field: x={receptive_x}  y={receptive_y}")
+
+
 class StackedConvolutions(BaseModel):
     def __init__(self,
                  ch_in: int = 1,
@@ -122,8 +156,12 @@ def __check_convnet():
 def get_non_linearity(activation: str):
     if activation == "LeakyReLU":
         non_linearity = torch.nn.LeakyReLU()
-    else:
+    elif activation == "ReLU":
         non_linearity = torch.nn.ReLU()
+    elif activation is None:
+        non_linearity = torch.nn.Identity()
+    else:
+        raise ValueError(f"Unknown activation {activation}")
     return non_linearity
 
 
@@ -246,5 +284,6 @@ def __check_unet():
 
 
 if __name__ == "__main__":
+    __check_convnet_vanilla()
     __check_convnet()
     __check_unet()

@@ -8,7 +8,7 @@ from shared import (
     AUGMENTATION_LIST, AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP,
     LOSS, LOSS_BCE, LOSS_DICE, LOSS_BCE_WEIGHTED
 )
-from model import UNet, StackedConvolutions
+from model import UNet, StackedConvolutions, VanillaConvolutionStack
 import torch
 from data_loader import get_dataloaders
 from typing import Tuple
@@ -45,6 +45,22 @@ def experiment_stacked_convolutions(
             residual=residual
         ),
         NAME: "StackedConvolutions"
+    }
+
+
+def vanilla_experiment(config: dict, b: int = 32, n: int = 50) -> dict:
+    config[NB_EPOCHS] = n
+    config[DATALOADER][BATCH_SIZE][TRAIN] = b
+    config[DATALOADER][BATCH_SIZE][VALIDATION] = b
+    config[SCHEDULER] = REDUCELRONPLATEAU
+    config[SCHEDULER_CONFIGURATION] = {
+        "factor": 0.8,
+        "patience": 5
+    }
+    config[OPTIMIZER][PARAMS][LR] = 1e-3
+    config[MODEL] = {
+        ARCHITECTURE: dict(),
+        NAME: "VanillaConvolutionStack"
     }
 
 
@@ -172,13 +188,39 @@ def get_experiment_config(exp: int) -> dict:
         config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
         config[LOSS] = LOSS_BCE
     elif exp == 201:
-        # same as 105 but with augmentations - new metrics
+        # same as 105 but with augmentations - new metrics  - first run coeff 9
         experiment_stacked_convolutions(config, num_layers=5, h_dim=256, n=50)
         config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
         config[LOSS] = LOSS_BCE_WEIGHTED
     elif exp == 202:
         # same as 105 but with augmentations - new metrics
         experiment_stacked_convolutions(config, num_layers=5, h_dim=256, n=50)
+        config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
+        config[LOSS] = LOSS_DICE
+    elif exp == 203:
+        # Same as 202 but with larger LR
+        experiment_stacked_convolutions(config, num_layers=5, h_dim=256, n=50)
+        config[OPTIMIZER][PARAMS][LR] = 1e-3
+        config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
+        config[LOSS] = LOSS_DICE
+    elif exp == 300:
+        vanilla_experiment(config, n=50, b=128)
+        config[LOSS] = LOSS_BCE
+    elif exp == 301:
+        vanilla_experiment(config, n=50, b=128)
+        config[LOSS] = LOSS_DICE
+    elif exp == 302:
+        vanilla_experiment(config, n=50, b=128)
+        config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
+        config[LOSS] = LOSS_DICE
+    elif exp == 303:
+        vanilla_experiment(config, n=50, b=32)
+        config[LOSS] = LOSS_BCE
+    elif exp == 304:
+        vanilla_experiment(config, n=50, b=32)
+        config[LOSS] = LOSS_DICE
+    elif exp == 305:
+        vanilla_experiment(config, n=50, b=32)
         config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
         config[LOSS] = LOSS_DICE
     else:
@@ -191,6 +233,8 @@ def get_training_content(config: dict, device=DEVICE) -> Tuple[torch.nn.Module, 
         model = UNet(**config[MODEL][ARCHITECTURE])
     elif config[MODEL][NAME] == StackedConvolutions.__name__:
         model = StackedConvolutions(**config[MODEL][ARCHITECTURE])
+    elif config[MODEL][NAME] == VanillaConvolutionStack.__name__:
+        model = VanillaConvolutionStack(**config[MODEL][ARCHITECTURE])
     else:
         raise ValueError(f"Unknown model {config[MODEL][NAME]}")
     if False:  # Sanity check on model
