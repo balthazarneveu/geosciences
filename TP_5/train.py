@@ -11,9 +11,11 @@ from shared import (
     ID, NAME, NB_EPOCHS,
     TRAIN, VALIDATION, TEST, LR,
     ACCURACY, PRECISION, RECALL, F1_SCORE,
-    DEVICE, SCHEDULER_CONFIGURATION, SCHEDULER, REDUCELRONPLATEAU
+    DEVICE, SCHEDULER_CONFIGURATION, SCHEDULER, REDUCELRONPLATEAU,
+    LOSS, LOSS_BCE
 )
 from metrics import compute_metrics
+from loss import compute_loss
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from configuration import WANDBSPACE
 from experiments import get_experiment_config, get_training_content
@@ -64,9 +66,7 @@ def training_loop(
                 optimizer.zero_grad()
                 with torch.set_grad_enabled(phase == TRAIN):
                     y_pred = model(x)
-                    if config.get("loss", "bce") == "bce":
-                        loss = torch.nn.functional.binary_cross_entropy_with_logits(y_pred.view(-1), y.view(-1))
-
+                    loss = compute_loss(y_pred, y, mode=config.get(LOSS, LOSS_BCE))
                     if torch.isnan(loss):
                         continue
                     if phase == TRAIN:
@@ -125,7 +125,8 @@ def train(config: dict, output_dir: Path, device: str = DEVICE, wandb_flag: bool
             project=WANDBSPACE,
             entity="balthazarneveu",
             name=config[NAME],
-            tags=["debug"],
+            # tags=["debug"],
+            tags=["base"],
             config=config
         )
     scheduler = None

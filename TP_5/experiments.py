@@ -166,10 +166,21 @@ def get_experiment_config(exp: int) -> dict:
         # same as 105 but with augmentations
         experiment_stacked_convolutions(config, num_layers=5, h_dim=256, n=50)
         config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
-    elif exp == 113:
+    elif exp == 200:
         # same as 105 but with augmentations - new metrics
         experiment_stacked_convolutions(config, num_layers=5, h_dim=256, n=50)
         config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
+        config[LOSS] = LOSS_BCE
+    elif exp == 201:
+        # same as 105 but with augmentations - new metrics
+        experiment_stacked_convolutions(config, num_layers=5, h_dim=256, n=50)
+        config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
+        config[LOSS] = LOSS_BCE_WEIGHTED
+    elif exp == 202:
+        # same as 105 but with augmentations - new metrics
+        experiment_stacked_convolutions(config, num_layers=5, h_dim=256, n=50)
+        config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
+        config[LOSS] = LOSS_DICE
     else:
         raise ValueError(f"Unknown experiment {exp}")
     return config

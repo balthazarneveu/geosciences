@@ -25,6 +25,7 @@ def compute_metrics(y_pred: torch.Tensor, y_true: torch.Tensor, threshold: float
     recall = true_positive / (true_positive + false_negative) if (true_positive + false_negative) > 0 else 0.0
 
     # F1 Score
+    # Same as dice coefficient
     f1_score = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0.0
 
     # Accuracy
