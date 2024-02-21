@@ -1,7 +1,7 @@
 import torch
 from torch.utils.data import DataLoader, Dataset
 from shared import (
-    ROOT_DIR, TRAIN, VALIDATION, TEST, DATALOADER, BATCH_SIZE, DEVICE,
+    ROOT_DIR, TRAIN, VALIDATION, DATALOADER, BATCH_SIZE, DEVICE,
     AUGMENTATION_LIST,
     AUGMENTATION_H_ROLL_WRAPPED,
     AUGMENTATION_FLIP
@@ -37,7 +37,8 @@ class SegmentationDataset(Dataset):
         labels_path: Optional[Path] = None,
         device: str = DEVICE,
         preloaded: bool = False,
-        augmentation_list: Optional[list] = []
+        augmentation_list: Optional[list] = [],
+        sanity_check: bool = True
     ):
         self.preloaded = preloaded
         self.augmentation_list = augmentation_list
@@ -52,7 +53,20 @@ class SegmentationDataset(Dataset):
             label_list = [None for _ in range(len(img_list))]
         print(f"TOTAL ELEMENTS {len(img_list)}")
         self.path_list = list(zip(img_list, label_list))
-        self.n_samples = len(img_list)
+
+        if sanity_check:
+            new_list = []
+            for img_path, label_path in self.path_list:
+                img = load_npy_files(img_path)
+                # mini, maxi = torch.min(img), torch.max(img)
+                # print(mini, maxi)
+                if torch.isnan(img).any():
+                    print("Got NaN in image", img_path)
+                    continue
+                else:
+                    new_list.append((img_path, label_path))
+            self.path_list = new_list
+        self.n_samples = len(self.path_list)
         # If we can preload everything in memory, we can do it
         if preloaded:
             self.data_list = [(load_npy_files(img_path), load_npy_files(label_path))
