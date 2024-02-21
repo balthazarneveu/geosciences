@@ -10,7 +10,7 @@ from shared import (
     ROOT_DIR, OUTPUT_FOLDER_NAME,
     ID, NAME, NB_EPOCHS,
     TRAIN, VALIDATION, TEST, LR,
-    ACCURACY, PRECISION, RECALL, F1_SCORE,
+    ACCURACY, PRECISION, RECALL, F1_SCORE, IOU,
     DEVICE, SCHEDULER_CONFIGURATION, SCHEDULER, REDUCELRONPLATEAU,
     LOSS, LOSS_BCE
 )
@@ -54,7 +54,8 @@ def training_loop(
                            ACCURACY: 0.,
                            PRECISION: 0.,
                            RECALL: 0.,
-                           F1_SCORE: 0.
+                           F1_SCORE: 0.,
+                           IOU: 0.
                            }
         for phase in [TRAIN, VALIDATION]:
             if phase == TRAIN:
@@ -93,7 +94,8 @@ def training_loop(
             f"Accuracy: {current_metrics[ACCURACY]:.3%}",
             f"Precision: {current_metrics[PRECISION]:.3%} ",
             f"Recall: {current_metrics[RECALL]:.3%} ",
-            f"Dice coefficient: {current_metrics[F1_SCORE]:.3%} ")
+            f"Dice coefficient: {current_metrics[F1_SCORE]:.3%} ",
+            f"IoU: {current_metrics[IOU]:.3%}",)
         if scheduler is not None and isinstance(scheduler, ReduceLROnPlateau):
             scheduler.step(current_metrics[VALIDATION])
         if output_dir is not None:

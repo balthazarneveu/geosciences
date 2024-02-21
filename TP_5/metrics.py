@@ -1,5 +1,5 @@
 import torch
-from shared import ACCURACY, PRECISION, RECALL, F1_SCORE
+from shared import ACCURACY, PRECISION, RECALL, F1_SCORE, IOU
 
 
 def compute_accuracy(y_pred: torch.Tensor, y_true: torch.Tensor, threshold: float = 0.5):
@@ -31,9 +31,12 @@ def compute_metrics(y_pred: torch.Tensor, y_true: torch.Tensor, threshold: float
     # Accuracy
     accuracy = (true_positive + true_negative) / (true_positive + false_positive + true_negative + false_negative)
 
+    iou = true_positive / (true_positive + false_positive +
+                           false_negative) if ((true_positive + false_positive + false_negative)) > 0 else 0.0
     return {
         ACCURACY: accuracy,
         PRECISION: precision,
         RECALL: recall,
         F1_SCORE: f1_score,
+        IOU: iou
     }
