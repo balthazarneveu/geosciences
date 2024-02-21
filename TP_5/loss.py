@@ -35,7 +35,7 @@ def compute_loss(
         loss = torch.nn.functional.binary_cross_entropy_with_logits(
             y_pred_flat,
             y_true_flat,
-            pos_weight=torch.Tensor([9.]).to(y_pred.device)
+            pos_weight=torch.Tensor([2.]).to(y_pred.device)
         )
     elif mode == LOSS_DICE:
         # https://chenriang.me/f1-equal-dice-coefficient.html
