@@ -69,9 +69,16 @@ def selector(img_list: List[torch.Tensor], global_params: dict = {}, idx: int = 
     return img, label_img
 
 
-def display_tensor(img: torch.Tensor, global_params: dict = {}):
-    mini, maxi = torch.min(img), torch.max(img)
+@interactive(
+    adapt_dynamic_range=(True,),
+)
+def display_tensor(img: torch.Tensor, adapt_dynamic_range=True, global_params: dict = {}):
+    if adapt_dynamic_range:
+        mini, maxi = torch.min(img), torch.max(img)
+    else:
+        mini, maxi = -0.2, 0.2
     img_rescaled = (img - mini)/(maxi-mini)
+
     img_rescaled = img_rescaled[0, ...].unsqueeze(-1).repeat(1, 1, 3)
     int_array = (img_rescaled.cpu().numpy())
     title = f"image={global_params.get('idx', 0)}"
@@ -116,10 +123,12 @@ def inference(img: torch.Tensor, model: torch.nn.Module, global_params: dict = {
 
 
 @interactive(
-    shift=(0, [0, 36])
+    shift=(0, [0, 36]),
+    noise=(0., [0, 0.1]),
 )
-def modify(img: torch.Tensor, label_image: torch.Tensor, shift=0, global_params: dict = {}):
+def modify(img: torch.Tensor, label_image: torch.Tensor, shift=0, noise=0., global_params: dict = {}):
     img, label_image = augment_wrap_roll(img, label_image, shift=shift)
+    img = img + noise*torch.randn_like(img)
     return img, label_image
 
 
