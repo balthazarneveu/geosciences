@@ -7497,17 +7497,25 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Dataset-exploration">Dataset exploration<a class="anchor-link" href="#Dataset-exploration">¶</a></h2><p>Pairs of patches and annotations (areas to segment).</p>
+<h2 id="Dataset-exploration">Dataset exploration<a class="anchor-link" href="#Dataset-exploration">¶</a></h2><p>Pairs of patches and annotations (areas to segment). size 36x36 gray level.</p>
 <ul>
 <li>Train set: 7211 patches from 12 wells.</li>
 <li>Validation set: 2463 patches from 3 wells (majority in well 13)</li>
 </ul>
 <p><strong>Observations</strong></p>
 <ul>
-<li>At first sight, the regions we're trying to segment look like think dark lines.</li>
+<li>At first sight, the regions we're trying to segment look like thin dark lines.</li>
 <li>Sometimes the positive areas are spread on both sides of the image (due to the circular nature of the well images).</li>
+<li>Two images containing NaN values <code>validation/images/well_15_patch_201.npy</code> and <code>well_15_patch_202.npy</code> are discarded in the dataloader (sanity check before loading the images).</li>
 </ul>
 <p><img alt="" src="figures/dataset_samples.png"/></p>
+<h2 id="Dataloader">Dataloader<a class="anchor-link" href="#Dataloader">¶</a></h2><p><a href="data_loader.py">data_loader.py</a> loads pairs of image, labels.
+A list of augmentations is provided in <a href="augmentations.py">augmentations.py</a>:</p>
+<ul>
+<li>Horizontal roll (since the pipelines are circular)</li>
+<li>Vertical/Horizontal flips can be performed randomly.
+Random augmentations (and shuffles) are only performed on the training set, validation set is frozen.</li>
+</ul>
 </div>
 </div>
 </div>
@@ -7518,15 +7526,67 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Architectures">Architectures<a class="anchor-link" href="#Architectures">¶</a></h2><h4 id="Stacked-convolution-(single-scale)">Stacked convolution (single scale)<a class="anchor-link" href="#Stacked-convolution-(single-scale)">¶</a></h4><ul>
+<h2 id="Architectures">Architectures<a class="anchor-link" href="#Architectures">¶</a></h2><p>Three families of models are coded in <a href="model.py">model.py</a>.
+All models are pretty flexible.
+What can be changed:</p>
+<ul>
+<li>convolution sizes</li>
+<li>number of layers</li>
+<li>number of channels (hidden dimensions)</li>
+<li>activation function (Relu of Leaky ReLu were tested)</li>
+<li>number of input channels (ready to apply to other modalities)</li>
+<li>number of output channels (ready for multi classes).
+Since all models inherit from <code>BaseModel</code>, the number of parameters and the receptive field can easily be retrieved.
+Please note that all models do not include the sigmoïd applied to the final layer: we take logits as outputs and the loss function or further inference is in charge of applying the sigmoïd to convert these to probabilities.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">Model name</th>
+<th style="text-align:center">Number of parameters</th>
+<th style="text-align:center">Convolution sizes</th>
+<th style="text-align:center">Number of layers</th>
+<th style="text-align:center">Activation</th>
+<th style="text-align:center">Receptive field (H, V)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">Vanilla Stacked convolutions</td>
+<td style="text-align:center">260k</td>
+<td style="text-align:center">$(3,3)$</td>
+<td style="text-align:center">5</td>
+<td style="text-align:center">ReLu</td>
+<td style="text-align:center">$(11,11)$</td>
+</tr>
+<tr>
+<td style="text-align:center">Stack convolution</td>
+<td style="text-align:center">1.904M</td>
+<td style="text-align:center">$3^{\circ} \perp 5$</td>
+<td style="text-align:center">5</td>
+<td style="text-align:center">LeakyReLu</td>
+<td style="text-align:center">$(11,21)$</td>
+</tr>
+<tr>
+<td style="text-align:center">U-Net</td>
+<td style="text-align:center">775k</td>
+<td style="text-align:center">$(3,3)$</td>
+<td style="text-align:center">3 scales</td>
+<td style="text-align:center">LeakyReLu</td>
+<td style="text-align:center">$(27, 27)$</td>
+</tr>
+</tbody>
+</table>
+<h4 id="Stacked-convolution-(single-scale)">Stacked convolution (single scale)<a class="anchor-link" href="#Stacked-convolution-(single-scale)">¶</a></h4><ul>
 <li>Flexible design with a parameterized amount of layers</li>
-<li>Base convolution block is a separable convolution directionwise (H/V)<ul>
+<li>Base convolution block is a separable convolution directionwise ($H \perp V$)<ul>
 <li>The horizontal convolution pads using the "circular" convolution option which allows dealing with the specificity of dwell images.</li>
 <li>The vertical convolution pads by repeating gray levels.</li>
+<li>This should explain the notation  $3^{\circ} \perp 5$</li>
 </ul>
 </li>
-<li>Input convolution block allows going from 1 to <code>h_dim</code> channels.</li>
-<li>Output convolution block allows going from <code>h_dim</code> channels back to a single channel.</li>
+<li>Input modality convolution block allows going from 1 to <code>h_dim</code> channels.</li>
+<li>Output modality convolution block allows going from <code>h_dim</code> channels back to a single channel.</li>
 <li>Last layer outputs an image of the same size as the original one. Since we use the BCE Loss with Logits at first, the output of the network are logits (<em>not probabilities</em>), Sigmoid is not included.</li>
 <li>Possibility to use residual connections when the number of layers is a multiple of 2.</li>
 </ul>
@@ -7540,11 +7600,28 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h4 id="Vanilla-convolution-stack-(single-scale)">Vanilla convolution stack (single scale)<a class="anchor-link" href="#Vanilla-convolution-stack-(single-scale)">¶</a></h4><p><em>Remark: I coded the stacked convolution before I re-discovered the slide on the proposed vanilla model ("baseline" model from the slides).</em></p>
+<p>Provided as a "baseline" model, uses ReLu .
+<img alt="" src="figures/vanilla_convolution.png"/></p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h4 id="UNet">UNet<a class="anchor-link" href="#UNet">¶</a></h4><ul>
-<li>3 scales<ul>
+<li>3 scales.<ul>
 <li>$(36, 36) \rightarrow (18, 18) \rightarrow (9, 9)$</li>
+<li>Downsample by decimating information (skip 1 pixel over 4)</li>
+<li>Upsample with a bilinear interpolation.</li>
+<li>Concatenate skip connections together.</li>
 </ul>
 </li>
+<li>Large receptive field (27,27)</li>
 </ul>
 </div>
 </div>
@@ -7556,6 +7633,48 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<hr/>
+<h1 id="Taining">Taining<a class="anchor-link" href="#Taining">¶</a></h1><h3 id="Defining-experiments">Defining experiments<a class="anchor-link" href="#Defining-experiments">¶</a></h3><ul>
+<li>An experiment is defined by as specific ID (like 300) and the whole configuration is versioned under git in the <a href="experiments.py">experiments.py</a> file:<ul>
+<li>architecture (model name, number of layers, convolution sizes)</li>
+<li>augmentations</li>
+<li>loss</li>
+<li>hyper parameters</li>
+</ul>
+</li>
+<li>Tracking is performed using <a href="https://wandb.ai/balthazarneveu/geosciences-segmentation/workspace?workspace=user-balthazarneveu">Weights and Biases</a></li>
+</ul>
+<h3 id="Infrastructure">Infrastructure<a class="anchor-link" href="#Infrastructure">¶</a></h3><ul>
+<li>It is possible to train locally with a Nvidia very tiny GPU T500 with 4Gb of RAM.<ul>
+<li><code>python TP_5/train.py -e 300 301</code></li>
+<li><code>-nowb</code> allows disabling logging to weights and biases for quick prototyping</li>
+<li><code>-e</code> to specify a list of experiments.</li>
+</ul>
+</li>
+<li>The same experiment can be trained on a remote server <code>python TP_5/remote_training.py -e 300 301 -u kaggle_username -p</code></li>
+<li>To be able to train on the remote servers of Kaggle, I customized a remote training template that I wrote (<a href="https://github.com/balthazarneveu/mva_pepites">MVA-Pepites</a>). I hosted the <a href="https://www.kaggle.com/datasets/balthazarneveu/mva-geosciences-segmentation-dataset-slb">dataset</a> under Kaggle.
+It is possible to train several experiments.</li>
+</ul>
+<p><img alt="remote training" src="https://github.com/balthazarneveu/mva_pepites/blob/main/illustrations/overview.png?raw=true"/></p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h1 id="Monitoring">Monitoring<a class="anchor-link" href="#Monitoring">¶</a></h1><p>I implemented and keep track of <a href="metrics.py">metrics</a> on the validation set:</p>
+<ul>
+<li>Accuracy (does not mean much because if the network returns all zeros, the accuracy is around 89%).</li>
+<li>Precision , Recall. Recall seems interesting allows having a metric of how well we detected positive areas.</li>
+<li>Segmentation specific metrics : Dice loss (also named F1-score) to measure the balance between precision and recall.</li>
+<li>IoU (intersection over union).</li>
+</ul>
+<p>We train the network using BCE loss (with logits). The problem is casted as a per-pixel binary classification (background = 0, foreground = 1). Since the background class is over represented, we can weight the positive class a bit more.
+The <a href="loss.py">loss.py</a> file shows the possibilities.</p>
 </div>
 </div>
 </div>
