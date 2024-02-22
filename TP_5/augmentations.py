@@ -17,7 +17,10 @@ def augment_wrap_roll(img: torch.Tensor, lab: torch.Tensor, shift: Optional[int]
     if shift is None:
         shift = torch.randint(0, img.shape[-1], (1,)).item()
     rolled_img = torch.roll(img, shift, (-1,))
-    rolled_lab = torch.roll(lab, shift, (-1,))
+    if lab is not None:
+        rolled_lab = torch.roll(lab, shift, (-1,))
+    else:
+        rolled_lab = lab
     return rolled_img, rolled_lab
 
 
