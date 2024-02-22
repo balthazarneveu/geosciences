@@ -66,6 +66,9 @@ def selector(img_list: List[torch.Tensor], global_params: dict = {}, idx: int = 
         label_img = load_npy_files(img_list[valid_idx]["label_path"])
     if label_img is not None:
         label_img = label_img
+    title = f"image={global_params.get('idx', 0)}"
+    title += f"\n{img_list[valid_idx]['name']}"
+    global_params["__output_styles"]["img"] = {"title": title}
     return img, label_img
 
 
@@ -81,20 +84,12 @@ def display_tensor(img: torch.Tensor, adapt_dynamic_range=True, global_params: d
 
     img_rescaled = img_rescaled[0, ...].unsqueeze(-1).repeat(1, 1, 3)
     int_array = (img_rescaled.cpu().numpy())
-    title = f"image={global_params.get('idx', 0)}"
-    global_params["__output_styles"]["img"] = {"title": title}
-    # int_array = Image(int_array, title=title)
-    # int_array = (255*int_array).astype(np.uint8)
-    # print(int_array)
-    # int_array = int_array.repeat(3, axis=0)
-    # global_params["title"] = title
-    # global_params["__pipeline"].outputs =
-    # return Image(int_array, title=title)
-    # return img[0, ...].cpu().numpy()
     return int_array
 
 
 def display_mask(mask, global_params: dict = {}):
+    if mask is None:
+        return None
     return mask.squeeze(0).cpu().numpy().astype(np.float32)
 
 
