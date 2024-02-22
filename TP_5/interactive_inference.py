@@ -176,7 +176,7 @@ def main(argv: List[str]):
     else:
         app = InteractivePipeMatplotlib(
             pipeline=pip,
-            name="Corrosion segmentatio",
+            name="Well corrosion segmentation",
             size=None
         )
     app(img_list, model_list)

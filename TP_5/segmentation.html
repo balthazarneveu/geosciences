@@ -7652,7 +7652,7 @@ Please note that all models do not include the sigmoïd applied to the final lay
 </ul>
 </li>
 <li>The same experiment can be trained on a remote server <code>python TP_5/remote_training.py -e 300 301 -u kaggle_username -p</code></li>
-<li>To be able to train on the remote servers of Kaggle, I customized a remote training template that I wrote (<a href="https://github.com/balthazarneveu/mva_pepites">MVA-Pepites</a>). I hosted the <a href="https://www.kaggle.com/datasets/balthazarneveu/mva-geosciences-segmentation-dataset-slb">dataset</a> under Kaggle.
+<li>To be able to train on the remote servers of Kaggle with 16Gb of RAM, I customized a remote training template that I wrote (<a href="https://github.com/balthazarneveu/mva_pepites">MVA-Pepites</a>). I hosted the <a href="https://www.kaggle.com/datasets/balthazarneveu/mva-geosciences-segmentation-dataset-slb">dataset</a> under Kaggle.
 It is possible to train several experiments.</li>
 </ul>
 <p><img alt="remote training" src="https://github.com/balthazarneveu/mva_pepites/blob/main/illustrations/overview.png?raw=true"/></p>
@@ -7666,7 +7666,7 @@ It is possible to train several experiments.</li>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h1 id="Monitoring">Monitoring<a class="anchor-link" href="#Monitoring">¶</a></h1><p>I implemented and keep track of <a href="metrics.py">metrics</a> on the validation set:</p>
+<h1 id="Monitoring">Monitoring<a class="anchor-link" href="#Monitoring">¶</a></h1><p>I implemented a set of <a href="metrics.py">metrics</a> on the validation set:</p>
 <ul>
 <li>Accuracy (does not mean much because if the network returns all zeros, the accuracy is around 89%).</li>
 <li>Precision , Recall. Recall seems interesting allows having a metric of how well we detected positive areas.</li>
@@ -7675,6 +7675,52 @@ It is possible to train several experiments.</li>
 </ul>
 <p>We train the network using BCE loss (with logits). The problem is casted as a per-pixel binary classification (background = 0, foreground = 1). Since the background class is over represented, we can weight the positive class a bit more.
 The <a href="loss.py">loss.py</a> file shows the possibilities.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="Visualization">Visualization<a class="anchor-link" href="#Visualization">¶</a></h3><p>To be able to visualize results, it is possible to perform live inference and compare several models.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center"><img alt="" src="figures/interactive_pipe_demo.gif"/></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">We can browse between images using the left / right arrow , page up/ page down to switch between models . Slider allow to shift the input horizontally, and add a bit of noise. Inference is performed live on the GPU</td>
+</tr>
+</tbody>
+</table>
+<p><code>python TP_5/interactive_inference.py -i "TP_5/data/train/images/well_2*.npy" -e 200 402 300 --gui mpl --preload</code></p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center"><img alt="" src="figures/shift_effect.gif"/></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">Our stacked convolution network which uses horizontal convolutions with circular wrapping is able to segment corrosion areas which are located at the image boundary</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 </div>
 </div>
 </div>
