@@ -72,6 +72,13 @@ def selector(img_list: List[torch.Tensor], global_params: dict = {}, idx: int = 
     return img, label_img
 
 
+def resize_images(img: torch.Tensor):
+    img = img.view(1, 1, img.shape[-2], img.shape[-1])
+    img = torch.nn.functional.interpolate(img, scale_factor=8., mode="nearest")
+    img = img.squeeze(0).squeeze(0)
+    return img
+
+
 @interactive(
     adapt_dynamic_range=(True,),
 )
@@ -81,8 +88,8 @@ def display_tensor(img: torch.Tensor, adapt_dynamic_range=True, global_params: d
     else:
         mini, maxi = -0.2, 0.2
     img_rescaled = (img - mini)/(maxi-mini)
-
-    img_rescaled = img_rescaled[0, ...].unsqueeze(-1).repeat(1, 1, 3)
+    img_rescaled = resize_images(img_rescaled)
+    img_rescaled = img_rescaled.unsqueeze(-1).repeat(1, 1, 3)
     int_array = (img_rescaled.cpu().numpy())
     return int_array
 
@@ -90,7 +97,10 @@ def display_tensor(img: torch.Tensor, adapt_dynamic_range=True, global_params: d
 def display_mask(mask, global_params: dict = {}):
     if mask is None:
         return None
-    return mask.squeeze(0).cpu().numpy().astype(np.float32)
+    mask = mask.float()
+    mask_resize = resize_images(mask)
+    # mask_resize = mask
+    return mask_resize.squeeze(0).cpu().numpy().astype(np.float32)
 
 
 @interactive(
@@ -106,14 +116,15 @@ def model_selector(model_dic: dict, global_params: dict = {}, model_index: int =
     model_pretty_name = model_dic[model_name]["model"][NAME]
     n_params = model_dic[model_name]["model"][N_PARAMS]
     global_params["__output_styles"]["infered_mask"] = {
-        "title": f"Inference\n{model_pretty_name}\n{n_params/1000:.1f}k params"}
+        "title": f"Inference\n{model_pretty_name}\n{n_params/1000:.1f}k params",
+    }
     return model_dic[model_name]["torch_model"]
 
 
 def inference(img: torch.Tensor, model: torch.nn.Module, global_params: dict = {}):
     with torch.no_grad():
         output = model(img.to(DEVICE).unsqueeze(0))
-    predicted_mask = (torch.sigmoid(output[0, 0, ...]) > 0.5).float().cpu().numpy()
+    predicted_mask = (torch.sigmoid(output[0, 0, ...]) > 0.5)
     return predicted_mask
 
 
@@ -134,6 +145,8 @@ def segmentation_demo(img_list: List[torch.Tensor], model_dict: dict):
     infered_mask = inference(img, model)
     img = display_tensor(img)
     label_image = display_mask(label_image)
+    infered_mask = display_mask(infered_mask)
+    # .float().cpu().numpy()
     # infered_mask = display_tensor(infered_mask)
     return img, infered_mask, label_image
 
