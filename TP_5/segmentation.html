@@ -7685,19 +7685,10 @@ The <a href="loss.py">loss.py</a> file shows the possibilities.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="Visualization">Visualization<a class="anchor-link" href="#Visualization">¶</a></h3><p>To be able to visualize results, it is possible to perform live inference and compare several models.</p>
-<table>
-<thead>
-<tr>
-<th style="text-align:center"><img alt="" src="figures/interactive_pipe_demo.gif"/></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:center">We can browse between images using the left / right arrow , page up/ page down to switch between models . Slider allow to shift the input horizontally, and add a bit of noise. Inference is performed live on the GPU</td>
-</tr>
-</tbody>
-</table>
+<h3 id="Visualization">Visualization<a class="anchor-link" href="#Visualization">¶</a></h3><p>To be able to visualize results, it is possible to perform live inference and compare several models.
+|<img alt="" src="figures/interactive_demo_browse.gif"/>| <img alt="" src="figures/interactive_demo_compare_models.gif"/> | <img alt="" src="figures/interactive_demo_shift.gif"/> | <img alt="" src="figures/interactive_demo_noise.gif"/> |
+|:---:|:---:|
+| We can browse between images using the left / right arrow  | page up/ page down to switch between models | Slider allow to shift the input horizontally, and add a bit of noise. Inference is performed live on the GPU|</p>
 <p><code>python TP_5/interactive_inference.py -i "TP_5/data/train/images/well_2*.npy" -e 200 402 300 --gui mpl --preload</code></p>
 <table>
 <thead>
@@ -7708,6 +7699,36 @@ The <a href="loss.py">loss.py</a> file shows the possibilities.</p>
 <tbody>
 <tr>
 <td style="text-align:center">Our stacked convolution network which uses horizontal convolutions with circular wrapping is able to segment corrosion areas which are located at the image boundary</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h1 id="Results-analyzis">Results analyzis<a class="anchor-link" href="#Results-analyzis">¶</a></h1><h3 id="Color-code">Color code<a class="anchor-link" href="#Color-code">¶</a></h3><ul>
+<li>Pixels flagged in black or green: correctly labeled (black=background, green=foreground)</li>
+<li>Pixels flagged in red: predicted background (0), groundtruth = foreground (1) <em>a.k.a False Negative</em></li>
+<li>Pixels flagged in blue: predicted foreground (1), groundtruth = background (0) <em>a.k.a False Positiive</em></li>
+</ul>
+<h3 id="Labeling-relevance">Labeling relevance<a class="anchor-link" href="#Labeling-relevance">¶</a></h3><p>Trying to reach best accuracy may be in vain. As a matter of fact, it seems that sometimes the labels are less relevant than the network prediction.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center"><img alt="" src="figures/annotations_accuracy.png"/></th>
+<th style="text-align:center"><img alt="" src="figures/annotations_accuracy_2.png"/></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">Label mis-location</td>
+<td style="text-align:center">Label is too thick. Network prediction is more thin and better located. The corrosion line is 2 pixels wide , not 3</td>
 </tr>
 </tbody>
 </table>

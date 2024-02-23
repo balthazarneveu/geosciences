@@ -80,13 +80,14 @@ def resize_images(img: torch.Tensor):
 
 
 @interactive(
-    adapt_dynamic_range=(True,),
+    adapt_dynamic_range=(False,),
 )
 def display_tensor(img: torch.Tensor, adapt_dynamic_range=True, global_params: dict = {}):
     if adapt_dynamic_range:
         mini, maxi = torch.min(img), torch.max(img)
+        print(mini, maxi)
     else:
-        mini, maxi = -0.2, 0.2
+        mini, maxi = -0.05, 0.05
     img_rescaled = (img - mini)/(maxi-mini)
     img_rescaled = resize_images(img_rescaled)
     img_rescaled = img_rescaled.unsqueeze(-1).repeat(1, 1, 3)
@@ -100,6 +101,8 @@ def display_tensor(img: torch.Tensor, adapt_dynamic_range=True, global_params: d
 def display_mask_errors(mask, label, show_errors=True):
     colored_mask = display_mask(mask)
     if show_errors:
+        if label is None:
+            return colored_mask
         colored_label = display_mask(label)
         wrong = colored_mask[..., 1] != colored_label[..., 1]
         colored_mask[..., 0][wrong] = colored_label[..., 1][wrong]
