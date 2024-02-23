@@ -1,8 +1,7 @@
-from interactive_pipe import interactive_pipeline, interactive, KeyboardControl
+from interactive_pipe import interactive, KeyboardControl
 from interactive_pipe.headless.pipeline import HeadlessPipeline
 from interactive_pipe.graphical.qt_gui import InteractivePipeQT
 from interactive_pipe.graphical.mpl_gui import InteractivePipeMatplotlib
-from interactive_pipe.data_objects.image import Image
 from batch_processing import Batch
 import argparse
 from shared import DEVICE, ROOT_DIR, OUTPUT_FOLDER_NAME, NAME, N_PARAMS
@@ -13,7 +12,7 @@ import sys
 from pathlib import Path
 from data_loader import load_npy_files
 import numpy as np
-from augmentations import augment_wrap_roll, augment_flip
+from augmentations import augment_wrap_roll
 
 
 def parse_command_line(parser: Batch = None) -> argparse.ArgumentParser:
@@ -47,7 +46,8 @@ def npy_loading_batch(input: Path, args: argparse.Namespace) -> dict:
         label_buffer = None
 
     if args.preload:
-        return {"name": input.name, "path": input, "buffer": load_npy_files(input), "label_path": label_path, "label_buffer": label_buffer}
+        return {"name": input.name, "path": input, "buffer": load_npy_files(input), "label_path": label_path,
+                "label_buffer": label_buffer}
     else:
         return {"name": input.name, "path": input, "buffer": None, "label_path": label_path, "label_buffer": None}
 
@@ -99,8 +99,11 @@ def display_mask(mask, global_params: dict = {}):
         return None
     mask = mask.float()
     mask_resize = resize_images(mask)
-    # mask_resize = mask
-    return mask_resize.squeeze(0).cpu().numpy().astype(np.float32)
+    mono_mask = mask_resize.squeeze(0).cpu().numpy().astype(np.float32)
+    colored_mask = mono_mask[..., None].repeat(3, axis=-1)
+    colored_mask[..., 0] = 0.
+    colored_mask[..., 2] = 0.
+    return colored_mask
 
 
 @interactive(
@@ -117,6 +120,8 @@ def model_selector(model_dic: dict, global_params: dict = {}, model_index: int =
     n_params = model_dic[model_name]["model"][N_PARAMS]
     global_params["__output_styles"]["infered_mask"] = {
         "title": f"Inference\n{model_pretty_name}\n{n_params/1000:.1f}k params",
+        # "xlabel": "Azimuth",
+        # "ylabel": "Depth"
     }
     return model_dic[model_name]["torch_model"]
 
