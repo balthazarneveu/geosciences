@@ -94,7 +94,23 @@ def display_tensor(img: torch.Tensor, adapt_dynamic_range=True, global_params: d
     return int_array
 
 
-def display_mask(mask, global_params: dict = {}):
+@interactive(
+    show_errors=(True,),
+)
+def display_mask_errors(mask, label, show_errors=True):
+    colored_mask = display_mask(mask)
+    if show_errors:
+        colored_label = display_mask(label)
+        wrong = colored_mask[..., 1] != colored_label[..., 1]
+        colored_mask[..., 0][wrong] = colored_label[..., 1][wrong]
+        colored_mask[..., 1][wrong] = 0.
+        colored_mask[..., 2][wrong] = 1-colored_label[..., 1][wrong]
+    else:
+        colored_mask[..., 0] = colored_mask[..., 1]
+    return colored_mask
+
+
+def display_mask(mask):
     if mask is None:
         return None
     mask = mask.float()
@@ -135,7 +151,7 @@ def inference(img: torch.Tensor, model: torch.nn.Module, global_params: dict = {
 
 @interactive(
     shift=(0, [0, 36]),
-    noise=(0., [0, 0.1]),
+    noise=(0., [0, 0.005]),
 )
 def modify(img: torch.Tensor, label_image: torch.Tensor, shift=0, noise=0., global_params: dict = {}):
     img, label_image = augment_wrap_roll(img, label_image, shift=shift)
@@ -149,10 +165,10 @@ def segmentation_demo(img_list: List[torch.Tensor], model_dict: dict):
     img, label_image = modify(img, label_image)
     infered_mask = inference(img, model)
     img = display_tensor(img)
+    infered_mask = display_mask_errors(infered_mask, label_image)
     label_image = display_mask(label_image)
-    infered_mask = display_mask(infered_mask)
-    # .float().cpu().numpy()
-    # infered_mask = display_tensor(infered_mask)
+    # infered_mask = display_mask(infered_mask)
+
     return img, infered_mask, label_image
 
 
