@@ -6,6 +6,7 @@ from experiments import get_experiment_config, get_training_content
 import torch
 import matplotlib.pyplot as plt
 from tqdm import tqdm
+from pathlib import Path
 
 
 def get_parser(parser: Optional[argparse.ArgumentParser] = None) -> argparse.ArgumentParser:
@@ -23,13 +24,13 @@ def inference_main(argv):
     parser = get_parser()
     args = parser.parse_args(argv)
     device = DEVICE
-
+    output_dir = Path(args.output_dir)
     for exp in args.exp:
         config = get_experiment_config(exp)
-        inference_dir = args.output_dir/(config[NAME]+"_inference")
+        inference_dir = output_dir/(config[NAME]+"_inference")
         inference_dir.mkdir(exist_ok=True, parents=True)
         model, _, dl_dict = get_training_content(config, device=DEVICE)
-        model.load_state_dict(torch.load(args.output_dir/config[NAME]/"best_model.pt"))
+        model.load_state_dict(torch.load(output_dir/config[NAME]/"best_model.pt"))
         model.eval()
         model.to(device)
         mode = args.mode
