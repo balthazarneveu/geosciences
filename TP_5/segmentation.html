@@ -7840,6 +7840,43 @@ Inference is performed live on the GPU</p>
 </div>
 </div>
 </div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h1 id="Making-the-model-lightweight">Making the model lightweight<a class="anchor-link" href="#Making-the-model-lightweight">¶</a></h1><h3 id="Weights-quantization">Weights quantization<a class="anchor-link" href="#Weights-quantization">¶</a></h3><p><a href="model_quantization.html">Auxiliary notebook on quantization</a> | code: <a href="model_quantization.ipynb">model_quantization.ipynb</a></p>
+<p>🪶 We'll use model <code>201</code> at first which only weights 7.26Mb on disk as storing only 1.9M parameters.</p>
+<ul>
+<li>We can quantify the weights to any precision we'd like 16bits or 8bits.</li>
+<li>But we can try 12 or 4bits which would require a dedicated packing algorithm.</li>
+</ul>
+<blockquote>
+<p>Weight quantization purpose is just to compress storage space (not RAM) at the cost of decompressing the weights. Not that lossless zip-like compression could be applied on top of that).</p>
+</blockquote>
+<h4 id="Remarks">Remarks<a class="anchor-link" href="#Remarks">¶</a></h4><p>Below is the global distribution of convolution weights of the model, no distinction made between layers.</p>
+<p><img alt="" src="figures/weights_global_distrib.png"/></p>
+<p>By analyzing the distribution of weights at each layer, it is clear that each layer's weight has its own range of values which is why I picked to quantify per layer.</p>
+<p>By compressing to signed 8bit integer weights, we're able to shrink the model by a factor of 4.
+If we take a look at the probability prediction errors with the 8bit compressed model, we have a less than an average 0.1% error and visually the segmentations prediction with the quantized weights don't look to far away from the original model.
+We can check the first validation batch (32 images).</p>
+<p><img alt="" src="figures/quant_8bits.png"/></p>
+<p>We need to lead more thorough validation and compute validation metrics over the whole validation set.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+</div>
+</div>
+</div>
+</div>
 </main>
 </body>
 </html>

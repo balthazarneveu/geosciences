@@ -19,6 +19,7 @@ def load_model(exp: int, device: str = DEVICE):
 
 def main_quantization(exp: int = 201, device=DEVICE, num_bits: int = 16):
     model, _ = load_model(exp, device=device)
+    print(f"model {exp} has  {model.count_parameters()} parameters")
     quantized_weights, quantized_params = quantize_model_per_layer(model, num_bits=num_bits)
     return quantized_weights, quantized_params
 
