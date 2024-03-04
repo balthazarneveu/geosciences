@@ -7863,16 +7863,73 @@ If we take a look at the probability prediction errors with the 8bit compressed 
 We can check the first validation batch (32 images).</p>
 <p><img alt="" src="figures/quant_8bits.png"/></p>
 <p>We need to lead more thorough validation and compute validation metrics over the whole validation set.</p>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<table>
+<thead>
+<tr>
+<th style="text-align:center">Quantization</th>
+<th style="text-align:center">None</th>
+<th style="text-align:center">16bits</th>
+<th style="text-align:center">8bits</th>
+<th style="text-align:center">4bits</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">Size on disk</td>
+<td style="text-align:center">7.26Mb</td>
+<td style="text-align:center">3.6Mb</td>
+<td style="text-align:center">1.8Mb</td>
+<td style="text-align:center">~1Mb</td>
+</tr>
+<tr>
+<td style="text-align:center">Format</td>
+<td style="text-align:center">Float32</td>
+<td style="text-align:center">int16</td>
+<td style="text-align:center">int8</td>
+<td style="text-align:center">packed 1 bit sign, 3bits content</td>
+</tr>
+<tr>
+<td style="text-align:center">Dice Score</td>
+<td style="text-align:center">83.7%</td>
+<td style="text-align:center">83.7%</td>
+<td style="text-align:center">83.6%</td>
+<td style="text-align:center">84.4%</td>
+</tr>
+<tr>
+<td style="text-align:center">IoU</td>
+<td style="text-align:center">72.47%</td>
+<td style="text-align:center">72.47%</td>
+<td style="text-align:center">72.43%</td>
+<td style="text-align:center">73.55%</td>
+</tr>
+</tbody>
+</table>
+<!-- Original -->
+<!-- 
+{'accuracy': 0.9683680534362793,
+ 'precision': 0.7998656034469604,
+ 'recall': 0.8879660964012146,
+ 'dice': 0.8370986580848694,
+ 'iou': 0.7247620820999146} -->
+<!-- Quantized 16b -->
+<!-- {'accuracy': 0.9683681130409241,
+ 'precision': 0.7998725771903992,
+ 'recall': 0.8879573941230774,
+ 'dice': 0.8370987772941589,
+ 'iou': 0.7247614860534668} -->
+<!-- Quantized 8b -->
+<!-- {'accuracy': 0.9683061838150024,
+ 'precision': 0.7994349598884583,
+ 'recall': 0.8878950476646423,
+ 'dice': 0.8368082642555237,
+ 'iou': 0.7243764996528625} -->
+<!-- Quantized 3b -->
+<!-- 
+ {'accuracy': 0.9725220203399658,
+ 'precision': 0.8826404213905334,
+ 'recall': 0.8197945952415466,
+ 'dice': 0.8448435068130493,
+ 'iou': 0.7355394959449768} -->
 </div>
 </div>
 </div>

@@ -25,4 +25,4 @@ def main_quantization(exp: int = 201, device=DEVICE, num_bits: int = 16):
 
 
 if __name__ == "__main__":
-    main_quantization()
+    main_quantization(num_bits=8)
