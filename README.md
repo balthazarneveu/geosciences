@@ -8,6 +8,11 @@
 - [TP3: raw data processing](/TP_3/TP_3.ipynb)
 - [TP4: planes estimations](/TP_4/planes_synthesis.ipynb)
 - [TP5: segmentation](/TP_5/segmentation.ipynb)
+- [TP6: physics informed neural networks](/TP_6/PINN.ipynb)
 
 # :scroll: Project
-- TBD
+
+Lightweight groove segmentation model
+- quantization 
+- distillation
+- improve the original model
