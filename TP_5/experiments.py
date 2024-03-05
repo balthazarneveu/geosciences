@@ -8,7 +8,7 @@ from shared import (
     AUGMENTATION_LIST, AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP,
     LOSS, LOSS_BCE, LOSS_DICE, LOSS_BCE_WEIGHTED
 )
-from model import UNet, StackedConvolutions, VanillaConvolutionStack
+from model import UNet, StackedConvolutions, VanillaConvolutionStack, MicroConv
 import torch
 from data_loader import get_dataloaders
 from typing import Tuple
@@ -45,6 +45,29 @@ def experiment_stacked_convolutions(
             residual=residual
         ),
         NAME: "StackedConvolutions"
+    }
+
+
+def experiment_micro_conv(
+    config: dict,
+    b: int = 32,
+    n: int = 50,
+    h_dim: int = 4,
+) -> dict:
+    config[NB_EPOCHS] = n
+    config[DATALOADER][BATCH_SIZE][TRAIN] = b
+    config[DATALOADER][BATCH_SIZE][VALIDATION] = b
+    config[SCHEDULER] = REDUCELRONPLATEAU
+    config[SCHEDULER_CONFIGURATION] = {
+        "factor": 0.8,
+        "patience": 5
+    }
+    config[OPTIMIZER][PARAMS][LR] = 1e-3
+    config[MODEL] = {
+        ARCHITECTURE: dict(
+            h_dim=h_dim,
+        ),
+        NAME: "MicroConv"
     }
 
 
@@ -261,6 +284,8 @@ def get_experiment_config(exp: int) -> dict:
         config[MODEL][ARCHITECTURE]["channels_extension"] = 64
         config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
         config[OPTIMIZER][PARAMS][LR] = 1e-4
+    elif exp == 500:
+        experiment_micro_conv(config, h_dim=4, b=32, n=50)
     else:
         raise ValueError(f"Unknown experiment {exp}")
     return config
@@ -269,6 +294,8 @@ def get_experiment_config(exp: int) -> dict:
 def get_training_content(config: dict, device=DEVICE) -> Tuple[torch.nn.Module, torch.optim.Optimizer, dict]:
     if config[MODEL][NAME] == UNet.__name__:
         model = UNet(**config[MODEL][ARCHITECTURE])
+    elif config[MODEL][NAME] == MicroConv.__name__:
+        model = MicroConv(**config[MODEL][ARCHITECTURE])
     elif config[MODEL][NAME] == StackedConvolutions.__name__:
         model = StackedConvolutions(**config[MODEL][ARCHITECTURE])
     elif config[MODEL][NAME] == VanillaConvolutionStack.__name__:
