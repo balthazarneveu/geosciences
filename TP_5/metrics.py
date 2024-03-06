@@ -48,7 +48,7 @@ def compute_metrics(y_pred: torch.Tensor, y_true: torch.Tensor, threshold: float
     accuracy = (true_positive + true_negative) / (true_positive + false_positive + true_negative + false_negative)
 
     # Intersection over Union (IoU)
-    iou = true_positive / (true_positive + false_positive + false_negative)
+    iou = true_positive / (true_positive + false_positive + false_negative + epsilon)
     return {
         ACCURACY: accuracy.mean(),
         PRECISION: precision.mean(),
