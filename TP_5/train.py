@@ -76,7 +76,7 @@ def training_loop(
                         optimizer.step()
                 current_metrics[phase] += loss.item()
                 if phase == VALIDATION:
-                    metrics_on_batch = compute_metrics(y_pred.view(-1), y.view(-1))
+                    metrics_on_batch = compute_metrics(y_pred, y)
                     for k, v in metrics_on_batch.items():
                         current_metrics[k] += v
 

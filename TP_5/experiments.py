@@ -286,6 +286,15 @@ def get_experiment_config(exp: int) -> dict:
         config[OPTIMIZER][PARAMS][LR] = 1e-4
     elif exp == 500:
         experiment_micro_conv(config, h_dim=4, b=32, n=50)
+    elif exp == 501:
+        experiment_micro_conv(config, h_dim=4, b=32, n=50)
+        config[OPTIMIZER][PARAMS][LR] = 1e-4
+    elif exp == 502:
+        experiment_micro_conv(config, h_dim=4, b=128, n=50)
+        config[OPTIMIZER][PARAMS][LR] = 1e-3
+    elif exp == 503:
+        experiment_micro_conv(config, h_dim=4, b=128, n=50)
+        config[OPTIMIZER][PARAMS][LR] = 1e-3
     else:
         raise ValueError(f"Unknown experiment {exp}")
     return config
