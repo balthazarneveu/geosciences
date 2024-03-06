@@ -129,7 +129,8 @@ def train(config: dict, output_dir: Path, device: str = DEVICE, wandb_flag: bool
             entity="balthazarneveu",
             name=config[NAME],
             # tags=["debug"],
-            tags=["base"],
+            # tags=["base"],
+            tags=["dice_fix"],
             config=config
         )
     scheduler = None
