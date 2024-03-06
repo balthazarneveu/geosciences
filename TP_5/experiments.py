@@ -231,6 +231,10 @@ def get_experiment_config(exp: int) -> dict:
         experiment_stacked_convolutions(config, num_layers=5, h_dim=256, n=50)
         config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
         config[LOSS] = LOSS_BCE_WEIGHTED
+    elif exp == 206:
+        experiment_stacked_convolutions(config, num_layers=5, h_dim=256, n=50, b=128)
+        config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
+        config[LOSS] = LOSS_BCE_WEIGHTED
     elif exp == 300:
         vanilla_experiment(config, n=50, b=128)
         config[LOSS] = LOSS_BCE
@@ -305,6 +309,21 @@ def get_experiment_config(exp: int) -> dict:
         config[MODEL][ARCHITECTURE]["channels_extension"] = 64
         config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
         config[OPTIMIZER][PARAMS][LR] = 1e-4
+        config[NB_EPOCHS] = 200
+    elif exp == 404:
+        # FIXED DICE
+        config[DATALOADER][BATCH_SIZE][TRAIN] = 128
+        config[DATALOADER][BATCH_SIZE][VALIDATION] = 128
+        config[SCHEDULER] = REDUCELRONPLATEAU
+        config[SCHEDULER_CONFIGURATION] = {
+            "factor": 0.8,
+            "patience": 5
+        }
+        config[MODEL][ARCHITECTURE]["channels_extension"] = 64
+        config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
+        config[OPTIMIZER][PARAMS][LR] = 1e-3
+        config[NB_EPOCHS] = 200
+
     elif exp == 500:
         experiment_micro_conv(config, h_dim=4, b=32, n=200)
     elif exp == 501:
@@ -319,7 +338,7 @@ def get_experiment_config(exp: int) -> dict:
     else:
         raise ValueError(f"Unknown experiment {exp}")
     return config
-    
+
 
 def get_training_content(config: dict, device=DEVICE) -> Tuple[torch.nn.Module, torch.optim.Optimizer, dict]:
     if config[MODEL][NAME] == UNet.__name__:
