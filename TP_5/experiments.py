@@ -226,6 +226,11 @@ def get_experiment_config(exp: int) -> dict:
         config[OPTIMIZER][PARAMS][LR] = 1e-3
         config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
         config[LOSS] = LOSS_DICE
+    elif exp == 203:
+        # FIXED DICE same as 201
+        experiment_stacked_convolutions(config, num_layers=5, h_dim=256, n=50)
+        config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
+        config[LOSS] = LOSS_BCE_WEIGHTED
     elif exp == 300:
         vanilla_experiment(config, n=50, b=128)
         config[LOSS] = LOSS_BCE
@@ -251,6 +256,10 @@ def get_experiment_config(exp: int) -> dict:
         config[OPTIMIZER][PARAMS][LR] = 1e-4
         config[LOSS] = LOSS_BCE
         config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
+    elif exp == 306:
+        # FIX DICE : SAME AS 300!
+        vanilla_experiment(config, n=50, b=128)
+        config[LOSS] = LOSS_BCE
     elif exp == 400:
         config[DATALOADER][BATCH_SIZE][TRAIN] = 32
         config[DATALOADER][BATCH_SIZE][VALIDATION] = 32
@@ -284,21 +293,33 @@ def get_experiment_config(exp: int) -> dict:
         config[MODEL][ARCHITECTURE]["channels_extension"] = 64
         config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
         config[OPTIMIZER][PARAMS][LR] = 1e-4
+    elif exp == 403:
+        # FIXED DICE : SAME AS 402!
+        config[DATALOADER][BATCH_SIZE][TRAIN] = 128
+        config[DATALOADER][BATCH_SIZE][VALIDATION] = 128
+        config[SCHEDULER] = REDUCELRONPLATEAU
+        config[SCHEDULER_CONFIGURATION] = {
+            "factor": 0.8,
+            "patience": 5
+        }
+        config[MODEL][ARCHITECTURE]["channels_extension"] = 64
+        config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
+        config[OPTIMIZER][PARAMS][LR] = 1e-4
     elif exp == 500:
-        experiment_micro_conv(config, h_dim=4, b=32, n=50)
+        experiment_micro_conv(config, h_dim=4, b=32, n=200)
     elif exp == 501:
-        experiment_micro_conv(config, h_dim=4, b=32, n=50)
+        experiment_micro_conv(config, h_dim=4, b=32, n=200)
         config[OPTIMIZER][PARAMS][LR] = 1e-4
     elif exp == 502:
-        experiment_micro_conv(config, h_dim=4, b=128, n=50)
+        experiment_micro_conv(config, h_dim=4, b=128, n=200)
         config[OPTIMIZER][PARAMS][LR] = 1e-3
     elif exp == 503:
-        experiment_micro_conv(config, h_dim=4, b=128, n=50)
+        experiment_micro_conv(config, h_dim=4, b=512, n=200)
         config[OPTIMIZER][PARAMS][LR] = 1e-3
     else:
         raise ValueError(f"Unknown experiment {exp}")
     return config
-
+    
 
 def get_training_content(config: dict, device=DEVICE) -> Tuple[torch.nn.Module, torch.optim.Optimizer, dict]:
     if config[MODEL][NAME] == UNet.__name__:
