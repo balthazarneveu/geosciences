@@ -16,8 +16,7 @@ def compute_loss(
     Args:
         y_pred (torch.Tensor): [N, C, H, W] predicted values (logits! not probabilities).
         y_true (torch.Tensor): [N, C, H, W] true values.
-        mode (Optional[str], optional): mode of loss computation. 
-        L
+        mode (Optional[str], optional): mode of loss computation.
         Defaults to LOSS_BCE.
 
     Returns:
@@ -42,11 +41,13 @@ def compute_loss(
         # Equivalence between F1 and dice coefficient
         # Smooth here is used to avoid division by zero
         smooth = 1.E-7
-        y_pred_flat = torch.sigmoid(y_pred_flat)
+        y_pred_flat = torch.sigmoid(y_pred)
         y_true_flat = y_true_flat.float()
-        intersection = (y_pred_flat * y_true_flat).sum()
-        dice = (2.*intersection + smooth)/(y_pred_flat.sum() + y_true_flat.sum() + smooth)
+        dimensions = (-1, -2, -3)
+        intersection = (y_pred_flat * y_true).sum(dim=dimensions)
+        dice = (2.*intersection + smooth)/(y_pred_flat.sum(dim=dimensions) + y_true_flat.sum(dim=dimensions) + smooth)
         loss = 1 - dice
+        loss = loss.mean()
     else:
         raise ValueError(f"Mode {mode} not supported")
     return loss
