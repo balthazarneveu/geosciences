@@ -226,7 +226,7 @@ def get_experiment_config(exp: int) -> dict:
         config[OPTIMIZER][PARAMS][LR] = 1e-3
         config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
         config[LOSS] = LOSS_DICE
-    elif exp == 203:
+    elif exp == 204:
         # FIXED DICE same as 201
         experiment_stacked_convolutions(config, num_layers=5, h_dim=256, n=50)
         config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]

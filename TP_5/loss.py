@@ -41,11 +41,11 @@ def compute_loss(
         # Equivalence between F1 and dice coefficient
         # Smooth here is used to avoid division by zero
         smooth = 1.E-7
-        y_pred_flat = torch.sigmoid(y_pred)
-        y_true_flat = y_true_flat.float()
         dimensions = (-1, -2, -3)
-        intersection = (y_pred_flat * y_true).sum(dim=dimensions)
-        dice = (2.*intersection + smooth)/(y_pred_flat.sum(dim=dimensions) + y_true_flat.sum(dim=dimensions) + smooth)
+        y_pred_proba = torch.sigmoid(y_pred)
+        y_true_flat = y_true.sum(dim=dimensions)
+        intersection = (y_pred_proba * y_true.float()).sum(dim=dimensions)
+        dice = (2.*intersection + smooth)/(y_pred_proba.sum(dim=dimensions) + y_true_flat + smooth)
         loss = 1 - dice
         loss = loss.mean()
     else:
