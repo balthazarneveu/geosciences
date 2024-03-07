@@ -340,7 +340,7 @@ def get_experiment_config(exp: int) -> dict:
     return config
 
 
-def get_training_content(config: dict, device=DEVICE) -> Tuple[torch.nn.Module, torch.optim.Optimizer, dict]:
+def get_training_content(config: dict, device=DEVICE, get_data_loaders_flag: str = False) -> Tuple[torch.nn.Module, torch.optim.Optimizer, dict]:
     if config[MODEL][NAME] == UNet.__name__:
         model = UNet(**config[MODEL][ARCHITECTURE])
     elif config[MODEL][NAME] == MicroConv.__name__:
@@ -356,8 +356,12 @@ def get_training_content(config: dict, device=DEVICE) -> Tuple[torch.nn.Module, 
         model(torch.rand(n, ch, w, h))
     config[MODEL][N_PARAMS] = model.count_parameters()
     config[MODEL]["receptive_field"] = model.receptive_field()
-    optimizer = torch.optim.Adam(model.parameters(), **config[OPTIMIZER][PARAMS])
-    dl_dict = get_dataloaders(config, device=device)
+    if get_data_loaders_flag:
+        optimizer = torch.optim.Adam(model.parameters(), **config[OPTIMIZER][PARAMS])
+        dl_dict = get_dataloaders(config, device=device)
+    else:
+        optimizer = None
+        dl_dict = None
     return model, optimizer, dl_dict
 
 

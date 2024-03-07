@@ -77,3 +77,11 @@ def dequantize_weights(
 ) -> np.ndarray:
     bit_dynamic = 2.**(num_bits-1)
     return zero_point + quantized_weights.astype(np.float32) * scale/bit_dynamic
+
+
+def reinject_simulated_quantized_weights(model: torch.nn.Module, params_dequant: torch.Tensor, device: str = DEVICE):
+    # Reinject dequantized weights into the model
+    for name, param in model.named_parameters():
+        if name in params_dequant:
+            param.data = torch.nn.Parameter(torch.from_numpy(params_dequant[name])).to(device=device)
+            print(name, "has been updated with quantized weights")
