@@ -1,7 +1,7 @@
 import torch
 from torch.utils.data import DataLoader, Dataset
 from shared import (
-    ROOT_DIR, TRAIN, VALIDATION, DATALOADER, BATCH_SIZE, DEVICE,
+    ROOT_DIR, TRAIN, VALIDATION, TEST, DATALOADER, BATCH_SIZE, DEVICE,
     AUGMENTATION_LIST,
     AUGMENTATION_H_ROLL_WRAPPED,
     AUGMENTATION_FLIP
@@ -93,7 +93,10 @@ class SegmentationDataset(Dataset):
             img_data, label_data = augment_wrap_roll(img_data, label_data)
         if AUGMENTATION_FLIP in self.augmentation_list:
             img_data, label_data = augment_flip(img_data, label_data)
-        return (img_data.to(self.device), label_data.to(self.device))
+        return (
+            img_data.to(self.device),
+            label_data.to(self.device) if len(label_data) > 0 else self.path_list[index][0].stem
+        )
 
     def __len__(self):
         return self.n_samples
@@ -114,10 +117,10 @@ def get_dataloaders(config: dict, device: str = DEVICE):
         labels_path=ROOT_DIR/"data"/VALIDATION/LABELS_FOLDER,
         device=device
     )
-    # dl_test = SegmentationDataset(
-    #     ROOT_DIR/"data"/TEST/IMAGES_FOLDER,
-    #     device=device
-    # )
+    dl_test = SegmentationDataset(
+        ROOT_DIR/"data"/TEST/IMAGES_FOLDER,
+        device=device
+    )
     dl_dict = {
         TRAIN: DataLoader(
             dl_train,
@@ -129,7 +132,7 @@ def get_dataloaders(config: dict, device: str = DEVICE):
             shuffle=False,
             batch_size=config[DATALOADER][BATCH_SIZE][VALIDATION]
         ),
-        # TEST: DataLoader(dl_test, shuffle=False, batch_size=config[DATALOADER][BATCH_SIZE][TEST])
+        TEST: DataLoader(dl_test, shuffle=False, batch_size=config[DATALOADER][BATCH_SIZE][TEST])
     }
     return dl_dict
 
