@@ -193,7 +193,7 @@ def main(argv: List[str]):
     model_list = {}
     for exp in args.experiments:
         config = get_experiment_config(exp)
-        model, _, dl_dict = get_training_content(config, device=DEVICE)
+        model, _, dl_dict = get_training_content(config, device=DEVICE, get_data_loaders_flag=False)
         model.load_state_dict(torch.load(Path(args.model_root)/config[NAME]/"best_model.pt"))
         model.eval()
         model.to(device)

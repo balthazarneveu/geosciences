@@ -2,6 +2,7 @@ import torch
 from torch.utils.data import DataLoader, Dataset
 from shared import (
     ROOT_DIR, TRAIN, VALIDATION, TEST, DATALOADER, BATCH_SIZE, DEVICE,
+    SYNTHETIC,
     AUGMENTATION_LIST,
     AUGMENTATION_H_ROLL_WRAPPED,
     AUGMENTATION_FLIP
@@ -102,22 +103,34 @@ class SegmentationDataset(Dataset):
         return self.n_samples
 
 
+class SegmentationDatasetSynthetic(SegmentationDataset):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def __getitem__(self, index: int) -> Tuple[torch.Tensor, Union[torch.Tensor, None]]:
+        img, label = super().__getitem__(index)
+        return img, label
+
 def get_dataloaders(config: dict, device: str = DEVICE):
     augmentation_list = config[DATALOADER].get(AUGMENTATION_LIST, [])
     if len(augmentation_list) > 0:
         print(f"Using augmentations {augmentation_list}")
-    dl_train = SegmentationDataset(
+    if config[DATALOADER].get(SYNTHETIC, False):
+        segmentation_dataset_type = SegmentationDatasetSynthetic
+    else:
+        segmentation_dataset_type = SegmentationDataset
+    dl_train = segmentation_dataset_type(
         ROOT_DIR/"data"/TRAIN/IMAGES_FOLDER,
         labels_path=ROOT_DIR/"data"/TRAIN/LABELS_FOLDER,
         augmentation_list=augmentation_list,
         device=device
     )
-    dl_valid = SegmentationDataset(
+    dl_valid = segmentation_dataset_type(
         ROOT_DIR/"data"/VALIDATION/IMAGES_FOLDER,
         labels_path=ROOT_DIR/"data"/VALIDATION/LABELS_FOLDER,
         device=device
     )
-    dl_test = SegmentationDataset(
+    dl_test = segmentation_dataset_type(
         ROOT_DIR/"data"/TEST/IMAGES_FOLDER,
         device=device
     )
@@ -143,8 +156,9 @@ if __name__ == "__main__":
             BATCH_SIZE: {
                 TRAIN: 4,
                 VALIDATION: 4,
-                # TEST: 8
-            }
+                TEST: 8
+            },
+            SYNTHETIC: True
         }
     }
     import matplotlib.pyplot as plt
