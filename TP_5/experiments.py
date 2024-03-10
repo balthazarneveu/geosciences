@@ -6,6 +6,7 @@ from shared import (
     OPTIMIZER, LR, PARAMS,
     SCHEDULER, REDUCELRONPLATEAU, SCHEDULER_CONFIGURATION,
     AUGMENTATION_LIST, AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP,
+    SYNTHETIC,
     LOSS, LOSS_BCE, LOSS_DICE, LOSS_BCE_WEIGHTED
 )
 from model import UNet, StackedConvolutions, VanillaConvolutionStack, MicroConv
@@ -335,12 +336,17 @@ def get_experiment_config(exp: int) -> dict:
     elif exp == 503:
         experiment_micro_conv(config, h_dim=4, b=512, n=200)
         config[OPTIMIZER][PARAMS][LR] = 1e-3
+    elif exp == 600:
+        experiment_stacked_convolutions(config, num_layers=5, h_dim=256, n=50)
+        config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
+        config[LOSS] = LOSS_BCE_WEIGHTED
+        config[DATALOADER][SYNTHETIC] = True
     else:
         raise ValueError(f"Unknown experiment {exp}")
     return config
 
 
-def get_training_content(config: dict, device=DEVICE, get_data_loaders_flag: str = False) -> Tuple[torch.nn.Module, torch.optim.Optimizer, dict]:
+def get_training_content(config: dict, device=DEVICE, get_data_loaders_flag: str = True) -> Tuple[torch.nn.Module, torch.optim.Optimizer, dict]:
     if config[MODEL][NAME] == UNet.__name__:
         model = UNet(**config[MODEL][ARCHITECTURE])
     elif config[MODEL][NAME] == MicroConv.__name__:

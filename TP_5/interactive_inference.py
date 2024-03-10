@@ -7,6 +7,7 @@ import argparse
 from shared import DEVICE, ROOT_DIR, OUTPUT_FOLDER_NAME, NAME, N_PARAMS
 from typing import List
 from experiments import get_experiment_config, get_training_content
+from synthetic_labels import incruste_annotation
 import torch
 import sys
 from pathlib import Path
@@ -162,9 +163,19 @@ def modify(img: torch.Tensor, label_image: torch.Tensor, shift=0, noise=0., glob
     return img, label_image
 
 
+@interactive(
+    synthetic=(False,),
+)
+def synthetic_incrustation(img: torch.Tensor, label_image: torch.Tensor, synthetic=False, global_params: dict = {}):
+    if synthetic:
+        img, label_image = incruste_annotation(img)
+    return img, label_image
+
+
 def segmentation_demo(img_list: List[torch.Tensor], model_dict: dict):
     img, label_image = selector(img_list)
     model = model_selector(model_dict)
+    img, label_image = synthetic_incrustation(img, label_image)
     img, label_image = modify(img, label_image)
     infered_mask = inference(img, model)
     img = display_tensor(img)

@@ -16,6 +16,7 @@ def generate_annotation(
     amplitude_rotation=10,
     amount_of_objects_range=[0, 5],
     font_range=[8, 14],  # [14, 20],
+    gray_level_range=[0.8, 1.],
     h=36,
     w=36
 ) -> Tuple[torch.Tensor, torch.Tensor]:
@@ -39,7 +40,8 @@ def generate_annotation(
         random_letter = random.choice(letters)
         text_size = draw.textsize(random_letter, font=font)
 
-        random_gray_level = random.randint(0, 255)
+        # random_gray_level = random.randint(0, 255)
+        random_gray_level = random.randint(int(255*gray_level_range[0]), int(255*gray_level_range[1]))
 
         # Create a separate image for the letter to apply rotation
         letter_image = Image.new('L', (W, H), color=background_color)
@@ -84,6 +86,18 @@ def generate_annotation(
 
 def crop_center(img, mask, h=36, w=36):
     return img[h//4:h//4+h, :w], mask[h//4:h//4+h, :w].clip(0, 1)
+
+
+def incruste_annotation(img, modulation=10., debug=False):
+    fuzzy_annotation, mask = generate_annotation(gray_level_range=[1., 1.])
+    fuzzy_annotation = fuzzy_annotation.to(img.device)
+    mask = mask.to(img.device).unsqueeze(0)
+    new_img = (1.+modulation*fuzzy_annotation)*img
+    if debug:
+        plt.imshow(new_img[0, ...].cpu().numpy())
+        plt.imshow(mask[0, ...].cpu().numpy())
+        plt.show()
+    return new_img, mask
 
 
 if __name__ == "__main__":
