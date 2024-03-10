@@ -18,8 +18,12 @@ def generate_annotation(
     font_range=[8, 14],  # [14, 20],
     gray_level_range=[0.8, 1.],
     h=36,
-    w=36
+    w=36,
+    seed=None,
 ) -> Tuple[torch.Tensor, torch.Tensor]:
+    if seed is not None:
+        random.seed(seed)
+        np.random.seed(seed)
     H, W = 2*h, 2*w
     background_color = 0  # Black
 
@@ -88,11 +92,14 @@ def crop_center(img, mask, h=36, w=36):
     return img[h//4:h//4+h, :w], mask[h//4:h//4+h, :w].clip(0, 1)
 
 
-def incruste_annotation(img, modulation=10., debug=False):
-    fuzzy_annotation, mask = generate_annotation(gray_level_range=[1., 1.])
+def incruste_annotation(img, modulation=10., seed=None, debug=False, mode="easy"):
+    fuzzy_annotation, mask = generate_annotation(gray_level_range=[0.1, 1.], seed=seed)
     fuzzy_annotation = fuzzy_annotation.to(img.device)
     mask = mask.to(img.device).unsqueeze(0)
-    new_img = (1.+modulation*fuzzy_annotation)*img
+    if mode == "easy":
+        new_img = img + fuzzy_annotation
+    else:
+        new_img = (1.+modulation*fuzzy_annotation)*img
     if debug:
         plt.imshow(new_img[0, ...].cpu().numpy())
         plt.imshow(mask[0, ...].cpu().numpy())

@@ -8,6 +8,7 @@ from shared import (
     AUGMENTATION_FLIP
 )
 from augmentations import augment_wrap_roll, augment_flip
+from synthetic_labels import incruste_annotation
 from typing import Tuple, Optional, Union
 from pathlib import Path
 import numpy as np
@@ -39,11 +40,13 @@ class SegmentationDataset(Dataset):
         device: str = DEVICE,
         preloaded: bool = False,
         augmentation_list: Optional[list] = [],
-        sanity_check: bool = True
+        sanity_check: bool = True,
+        freeze=True,
     ):
         self.preloaded = preloaded
         self.augmentation_list = augmentation_list
         self.device = device
+        self.freeze = freeze
         img_list = sorted(list(images_path.glob("*.npy")))
         if labels_path is not None:
             label_list = sorted(list(labels_path.glob("*.npy")))
@@ -108,14 +111,18 @@ class SegmentationDatasetSynthetic(SegmentationDataset):
         super().__init__(*args, **kwargs)
 
     def __getitem__(self, index: int) -> Tuple[torch.Tensor, Union[torch.Tensor, None]]:
-        img, label = super().__getitem__(index)
-        return img, label
+        img, original_mask = super().__getitem__(index)
+        # print(img.shape, original_mask.shape)
+        new_img, mask = incruste_annotation(img, seed=index if self.freeze else None)
+        return new_img, mask
+
 
 def get_dataloaders(config: dict, device: str = DEVICE):
     augmentation_list = config[DATALOADER].get(AUGMENTATION_LIST, [])
     if len(augmentation_list) > 0:
         print(f"Using augmentations {augmentation_list}")
     if config[DATALOADER].get(SYNTHETIC, False):
+        print("Using synthetic dataset!!!!!")
         segmentation_dataset_type = SegmentationDatasetSynthetic
     else:
         segmentation_dataset_type = SegmentationDataset
@@ -128,10 +135,12 @@ def get_dataloaders(config: dict, device: str = DEVICE):
     dl_valid = segmentation_dataset_type(
         ROOT_DIR/"data"/VALIDATION/IMAGES_FOLDER,
         labels_path=ROOT_DIR/"data"/VALIDATION/LABELS_FOLDER,
+        freeze=True,
         device=device
     )
     dl_test = segmentation_dataset_type(
         ROOT_DIR/"data"/TEST/IMAGES_FOLDER,
+        freeze=True,
         device=device
     )
     dl_dict = {

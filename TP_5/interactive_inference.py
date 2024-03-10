@@ -168,7 +168,7 @@ def modify(img: torch.Tensor, label_image: torch.Tensor, shift=0, noise=0., glob
 )
 def synthetic_incrustation(img: torch.Tensor, label_image: torch.Tensor, synthetic=False, global_params: dict = {}):
     if synthetic:
-        img, label_image = incruste_annotation(img)
+        img, label_image = incruste_annotation(img, seed=42)
     return img, label_image
 
 
