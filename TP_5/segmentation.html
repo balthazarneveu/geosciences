@@ -7934,6 +7934,71 @@ We can check the first validation batch (32 images).</p>
 </div>
 </div>
 </div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h1 id="Segmentation-training-validation">Segmentation training validation<a class="anchor-link" href="#Segmentation-training-validation">¶</a></h1><p>After spotting an issue in the metrics computations, I decided to check the whole pipelines for bug.</p>
+<ul>
+<li>Added <a href="test_metrics.py">unit tests</a> on metrics</li>
+<li>Created a toy example (with various of complexity) to validate the whole training process when labels are perfect.</li>
+</ul>
+<p>The toy example allows to check:</p>
+<ul>
+<li>That the training loop works properly</li>
+<li>That my models can segment perfectly labeled data properly</li>
+<li>To check that models can be trained using the dice loss.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th style="text-align:center"></th>
+<th style="text-align:center"></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center"><img alt="" src="figures/trivial_toy_example.png"/></td>
+<td style="text-align:center"><img alt="" src="figures/toy_trivial.gif"/></td>
+</tr>
+</tbody>
+</table>
+<!-- |  | |
+|:---:| :---:|
+|![](figures/trivial_training_curves.png) | ![](figures/trivial_training_curves_BCE.png) | -->
+<ul>
+<li>Exp 621 (purple) is trained using weighted BCE (x2 in favor of positive examples) and batches of size 32</li>
+<li>Exp 622 (green) is trained in the same conditions as 621 but with batches of size 256 (<em>which shows a slightly slower convergence</em>)</li>
+<li>Exp 623 (red) is trained using dice loss ... we can see that there's a drop in DICE metric at epoch 23 (but the BCE decreases).</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th style="text-align:center"></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center"><img alt="" src="figures/trivial_training_curves_comparison.png"/></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+</div>
+</div>
+</div>
+</div>
 </main>
 </body>
 </html>
