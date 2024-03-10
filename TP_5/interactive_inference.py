@@ -165,10 +165,13 @@ def modify(img: torch.Tensor, label_image: torch.Tensor, shift=0, noise=0., glob
 
 @interactive(
     synthetic=(False,),
+    seed=(42, [0, 100000]),
+    mode=("easy", ["easy", "modulation"]),
 )
-def synthetic_incrustation(img: torch.Tensor, label_image: torch.Tensor, synthetic=False, global_params: dict = {}):
+def synthetic_incrustation(img: torch.Tensor, label_image: torch.Tensor, synthetic=False, seed=0, mode="easy",
+                           global_params: dict = {}):
     if synthetic:
-        img, label_image = incruste_annotation(img, seed=42)
+        img, label_image = incruste_annotation(img, mode=mode, seed=seed)
     return img, label_image
 
 

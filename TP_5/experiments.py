@@ -341,6 +341,13 @@ def get_experiment_config(exp: int) -> dict:
         config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
         config[LOSS] = LOSS_BCE_WEIGHTED
         config[DATALOADER][SYNTHETIC] = True
+        config[DATALOADER]["mode"] = "easy"
+    elif exp == 601:
+        experiment_stacked_convolutions(config, num_layers=5, h_dim=256, n=50)
+        config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
+        config[LOSS] = LOSS_BCE_WEIGHTED
+        config[DATALOADER][SYNTHETIC] = True
+        config[DATALOADER]["mode"] = "modulation"
     else:
         raise ValueError(f"Unknown experiment {exp}")
     return config

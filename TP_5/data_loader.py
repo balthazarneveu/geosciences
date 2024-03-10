@@ -42,6 +42,7 @@ class SegmentationDataset(Dataset):
         augmentation_list: Optional[list] = [],
         sanity_check: bool = True,
         freeze=True,
+        **_extra_kwargs
     ):
         self.preloaded = preloaded
         self.augmentation_list = augmentation_list
@@ -107,18 +108,20 @@ class SegmentationDataset(Dataset):
 
 
 class SegmentationDatasetSynthetic(SegmentationDataset):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, mode="easy", **kwargs):
         super().__init__(*args, **kwargs)
+        self.mode = mode
 
     def __getitem__(self, index: int) -> Tuple[torch.Tensor, Union[torch.Tensor, None]]:
         img, original_mask = super().__getitem__(index)
         # print(img.shape, original_mask.shape)
-        new_img, mask = incruste_annotation(img, seed=index if self.freeze else None)
+        new_img, mask = incruste_annotation(img, mode=self.mode, seed=index if self.freeze else None)
         return new_img, mask
 
 
 def get_dataloaders(config: dict, device: str = DEVICE):
     augmentation_list = config[DATALOADER].get(AUGMENTATION_LIST, [])
+    mode = config[DATALOADER].get("mode", None)
     if len(augmentation_list) > 0:
         print(f"Using augmentations {augmentation_list}")
     if config[DATALOADER].get(SYNTHETIC, False):
@@ -130,16 +133,19 @@ def get_dataloaders(config: dict, device: str = DEVICE):
         ROOT_DIR/"data"/TRAIN/IMAGES_FOLDER,
         labels_path=ROOT_DIR/"data"/TRAIN/LABELS_FOLDER,
         augmentation_list=augmentation_list,
+        mode=mode,
         device=device
     )
     dl_valid = segmentation_dataset_type(
         ROOT_DIR/"data"/VALIDATION/IMAGES_FOLDER,
         labels_path=ROOT_DIR/"data"/VALIDATION/LABELS_FOLDER,
         freeze=True,
+        mode=mode,
         device=device
     )
     dl_test = segmentation_dataset_type(
         ROOT_DIR/"data"/TEST/IMAGES_FOLDER,
+        mode=mode,
         freeze=True,
         device=device
     )
