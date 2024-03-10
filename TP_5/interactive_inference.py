@@ -4,7 +4,7 @@ from interactive_pipe.graphical.qt_gui import InteractivePipeQT
 from interactive_pipe.graphical.mpl_gui import InteractivePipeMatplotlib
 from batch_processing import Batch
 import argparse
-from shared import DEVICE, ROOT_DIR, OUTPUT_FOLDER_NAME, NAME, N_PARAMS
+from shared import DEVICE, ROOT_DIR, OUTPUT_FOLDER_NAME, NAME, N_PARAMS, TRIVIAL, EASY, MEDIUM, TRIVIAL
 from typing import List
 from experiments import get_experiment_config, get_training_content
 from synthetic_labels import incruste_annotation
@@ -166,9 +166,9 @@ def modify(img: torch.Tensor, label_image: torch.Tensor, shift=0, noise=0., glob
 @interactive(
     synthetic=(False,),
     seed=(42, [0, 100000]),
-    mode=("easy", ["easy", "modulation"]),
+    mode=(EASY, [EASY, MEDIUM, TRIVIAL]),
 )
-def synthetic_incrustation(img: torch.Tensor, label_image: torch.Tensor, synthetic=False, seed=0, mode="easy",
+def synthetic_incrustation(img: torch.Tensor, label_image: torch.Tensor, synthetic=False, seed=0, mode=EASY,
                            global_params: dict = {}):
     if synthetic:
         img, label_image = incruste_annotation(img, mode=mode, seed=seed)

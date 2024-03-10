@@ -7,7 +7,8 @@ from shared import (
     SCHEDULER, REDUCELRONPLATEAU, SCHEDULER_CONFIGURATION,
     AUGMENTATION_LIST, AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP,
     SYNTHETIC,
-    LOSS, LOSS_BCE, LOSS_DICE, LOSS_BCE_WEIGHTED
+    LOSS, LOSS_BCE, LOSS_DICE, LOSS_BCE_WEIGHTED,
+    TRIVIAL, EASY, MEDIUM, HARD
 )
 from model import UNet, StackedConvolutions, VanillaConvolutionStack, MicroConv
 import torch
@@ -336,18 +337,72 @@ def get_experiment_config(exp: int) -> dict:
     elif exp == 503:
         experiment_micro_conv(config, h_dim=4, b=512, n=200)
         config[OPTIMIZER][PARAMS][LR] = 1e-3
-    elif exp == 600:
+    elif exp == 600:  # EASY + STACKED
         experiment_stacked_convolutions(config, num_layers=5, h_dim=256, n=50)
         config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
         config[LOSS] = LOSS_BCE_WEIGHTED
         config[DATALOADER][SYNTHETIC] = True
-        config[DATALOADER]["mode"] = "easy"
-    elif exp == 601:
+        config[DATALOADER]["mode"] = EASY
+    elif exp == 601:  # EASY + UNET
+        config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
+        config[LOSS] = LOSS_BCE_WEIGHTED
+        config[DATALOADER][SYNTHETIC] = True
+        config[DATALOADER]["mode"] = EASY
+    elif exp == 602:  # EASY + UNET
+        config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
+        config[LOSS] = LOSS_BCE_WEIGHTED
+        config[DATALOADER][SYNTHETIC] = True
+        config[DATALOADER]["mode"] = EASY
+        config[NB_EPOCHS] = 300
+    elif exp == 610:  # MODULATE + STACKED
         experiment_stacked_convolutions(config, num_layers=5, h_dim=256, n=50)
         config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
         config[LOSS] = LOSS_BCE_WEIGHTED
         config[DATALOADER][SYNTHETIC] = True
-        config[DATALOADER]["mode"] = "modulation"
+        config[DATALOADER]["mode"] = MEDIUM
+    elif exp == 611:  # MODULATE + UNET
+        config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
+        config[LOSS] = LOSS_BCE_WEIGHTED
+        config[DATALOADER][SYNTHETIC] = True
+        config[DATALOADER]["mode"] = MEDIUM
+    elif exp == 620:  # TRIVIAL + STACKED
+        experiment_stacked_convolutions(config, num_layers=5, h_dim=256, n=50)
+        config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
+        config[LOSS] = LOSS_BCE_WEIGHTED
+        config[DATALOADER][SYNTHETIC] = True
+        config[DATALOADER]["mode"] = TRIVIAL
+        config[NB_EPOCHS] = 70
+        config[OPTIMIZER][PARAMS][LR] = 1e-3
+    elif exp == 621:  # TRIVIAL + UNET
+        config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
+        config[LOSS] = LOSS_BCE_WEIGHTED
+        config[DATALOADER][SYNTHETIC] = True
+        config[DATALOADER]["mode"] = TRIVIAL
+        config[NB_EPOCHS] = 100
+        config[OPTIMIZER][PARAMS][LR] = 1e-3
+    elif exp == 622:  # TRIVIAL + UNET - BIG BATCH
+        config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
+        config[LOSS] = LOSS_BCE_WEIGHTED
+        config[DATALOADER][SYNTHETIC] = True
+        config[DATALOADER]["mode"] = TRIVIAL
+        config[NB_EPOCHS] = 100
+        config[OPTIMIZER][PARAMS][LR] = 1e-3
+        config[DATALOADER][BATCH_SIZE][TRAIN] = 256
+    elif exp == 623:  # TRIVIAL + UNET + DICE LOSS
+        config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
+        config[LOSS] = LOSS_DICE
+        config[DATALOADER][SYNTHETIC] = True
+        config[DATALOADER]["mode"] = TRIVIAL
+        config[NB_EPOCHS] = 100
+        config[OPTIMIZER][PARAMS][LR] = 1e-3
+    elif exp == 624:  # TRIVIAL + STACKED + DICE LOSS
+        experiment_stacked_convolutions(config, num_layers=5, h_dim=256, n=50)
+        config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
+        config[LOSS] = LOSS_DICE
+        config[DATALOADER][SYNTHETIC] = True
+        config[DATALOADER]["mode"] = TRIVIAL
+        config[NB_EPOCHS] = 50
+        config[OPTIMIZER][PARAMS][LR] = 1e-3
     else:
         raise ValueError(f"Unknown experiment {exp}")
     return config

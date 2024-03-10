@@ -2,6 +2,7 @@ from PIL import Image, ImageDraw, ImageFont
 import random
 import numpy as np
 import torch
+from shared import TRIVIAL, EASY, MEDIUM
 
 from typing import Tuple
 
@@ -92,13 +93,25 @@ def crop_center(img, mask, h=36, w=36):
     return img[h//4:h//4+h, :w], mask[h//4:h//4+h, :w].clip(0, 1)
 
 
-def incruste_annotation(img, modulation=20., seed=None, debug=False, mode="easy"):
+def incruste_annotation(img, modulation=20., seed=None, debug=False, mode=EASY):
+    if mode == TRIVIAL:
+        fuzzy_annotation, mask = generate_annotation(
+            gray_level_range=[0.3, 0.5],
+            seed=seed,
+            amount_of_objects_range=[1, 5],
+            font_range=[14, 16],
+            letters=["O", "T", "+"]
+        )
+        fuzzy_annotation = fuzzy_annotation.to(img.device)
+        mask = mask.to(img.device).unsqueeze(0)
+        new_img = img + fuzzy_annotation
+        return new_img, mask
     fuzzy_annotation, mask = generate_annotation(gray_level_range=[0.1, 1.], seed=seed)
     fuzzy_annotation = fuzzy_annotation.to(img.device)
     mask = mask.to(img.device).unsqueeze(0)
-    if mode == "easy":
+    if mode == EASY:
         new_img = img + fuzzy_annotation
-    elif mode == "modulation":
+    elif mode == MEDIUM:
         new_img = (1.+modulation*fuzzy_annotation)*img
     else:
         raise ValueError(f"Unknown mode {mode}")

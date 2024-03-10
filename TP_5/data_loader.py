@@ -5,7 +5,8 @@ from shared import (
     SYNTHETIC,
     AUGMENTATION_LIST,
     AUGMENTATION_H_ROLL_WRAPPED,
-    AUGMENTATION_FLIP
+    AUGMENTATION_FLIP,
+    EASY, TRIVIAL, MEDIUM
 )
 from augmentations import augment_wrap_roll, augment_flip
 from synthetic_labels import incruste_annotation
@@ -108,7 +109,7 @@ class SegmentationDataset(Dataset):
 
 
 class SegmentationDatasetSynthetic(SegmentationDataset):
-    def __init__(self, *args, mode="easy", **kwargs):
+    def __init__(self, *args, mode=EASY, **kwargs):
         super().__init__(*args, **kwargs)
         self.mode = mode
 
