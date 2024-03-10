@@ -4,7 +4,12 @@ from interactive_pipe.graphical.qt_gui import InteractivePipeQT
 from interactive_pipe.graphical.mpl_gui import InteractivePipeMatplotlib
 from batch_processing import Batch
 import argparse
-from shared import DEVICE, ROOT_DIR, OUTPUT_FOLDER_NAME, NAME, N_PARAMS, TRIVIAL, EASY, MEDIUM, TRIVIAL
+from shared import (
+    DEVICE, ROOT_DIR, OUTPUT_FOLDER_NAME, NAME, N_PARAMS,  ID,
+    TRIVIAL, EASY, MEDIUM,
+    ACCURACY, PRECISION, RECALL, F1_SCORE, IOU,
+)
+from metrics import compute_metrics
 from typing import List
 from experiments import get_experiment_config, get_training_content
 from synthetic_labels import incruste_annotation
@@ -96,6 +101,16 @@ def display_tensor(img: torch.Tensor, adapt_dynamic_range=True, global_params: d
     return int_array
 
 
+def display_metrics(pred_mask, label, global_params: dict = {}):
+    metrics_dict = compute_metrics(pred_mask, label.to(pred_mask.device))
+    metrics_str = f"{ACCURACY}: {metrics_dict[ACCURACY]:06.1%}"
+    metrics_str += "\n" + "\t | ".join([f"{k}: {metrics_dict[k]:06.1%}" for k in [PRECISION, RECALL]])
+    metrics_str += "\n" + "\t | ".join([f"{k}: {metrics_dict[k]:06.1%}" for k in [F1_SCORE, IOU]])
+    global_params["__output_styles"]["label_image"] = {
+        "title": "Labels " + metrics_str
+    }
+
+
 @interactive(
     show_errors=(True,),
 )
@@ -138,8 +153,9 @@ def model_selector(model_dic: dict, global_params: dict = {}, model_index: int =
     print(model_name, model_dic[model_name]["model"][NAME])
     model_pretty_name = model_dic[model_name]["model"][NAME]
     n_params = model_dic[model_name]["model"][N_PARAMS]
+    exp_id = model_dic[model_name][ID]
     global_params["__output_styles"]["infered_mask"] = {
-        "title": f"Inference\n{model_pretty_name}\n{n_params/1000:.1f}k params",
+        "title": f"Inference\n{exp_id} {model_pretty_name}\n{n_params/1000:.1f}k params",
         # "xlabel": "Azimuth",
         # "ylabel": "Depth"
     }
@@ -148,9 +164,9 @@ def model_selector(model_dic: dict, global_params: dict = {}, model_index: int =
 
 def inference(img: torch.Tensor, model: torch.nn.Module, global_params: dict = {}):
     with torch.no_grad():
-        output = model(img.to(DEVICE).unsqueeze(0))
-    predicted_mask = (torch.sigmoid(output[0, 0, ...]) > 0.5)
-    return predicted_mask
+        logits = model(img.to(DEVICE).unsqueeze(0))
+    predicted_mask = (torch.sigmoid(logits[0, 0, ...]) > 0.5)
+    return predicted_mask, logits
 
 
 @interactive(
@@ -180,7 +196,8 @@ def segmentation_demo(img_list: List[torch.Tensor], model_dict: dict):
     model = model_selector(model_dict)
     img, label_image = synthetic_incrustation(img, label_image)
     img, label_image = modify(img, label_image)
-    infered_mask = inference(img, model)
+    infered_mask, infered_logits = inference(img, model)
+    display_metrics(infered_logits, label_image)
     img = display_tensor(img)
     infered_mask = display_mask_errors(infered_mask, label_image)
     label_image = display_mask(label_image)
