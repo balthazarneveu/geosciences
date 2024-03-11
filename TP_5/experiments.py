@@ -10,7 +10,7 @@ from shared import (
     LOSS, LOSS_BCE, LOSS_DICE, LOSS_BCE_WEIGHTED,
     TRIVIAL, EASY, MEDIUM, HARD
 )
-from model import UNet, StackedConvolutions, VanillaConvolutionStack, MicroConv
+from model import UNet, StackedConvolutions, VanillaConvolutionStack, MicroConv, FlexibleUNET
 import torch
 from data_loader import get_dataloaders
 from typing import Tuple
@@ -71,6 +71,44 @@ def experiment_micro_conv(
         ),
         NAME: "MicroConv"
     }
+
+
+def experiment_flexible_unet(
+    config: dict,
+    b: int = 32,
+    n: int = 50,
+    lr: float = 1e-3,
+    encoders=[3, 1, 1],
+    decoders=[1, 1, 3],
+    thickness: int = 8,
+    refinement_stage_depth=1,
+    bottleneck_depth=1,
+    loss=LOSS_BCE_WEIGHTED
+) -> dict:
+    config[MODEL] = {
+        ARCHITECTURE: dict(
+            # k_conv_ds=3,
+            # k_conv_us=3,
+            encoders=encoders,
+            decoders=decoders,
+            bottleneck_depth=bottleneck_depth,
+            refinement_stage_depth=refinement_stage_depth,
+            thickness=thickness,
+            padding=True,
+            bias=True,
+        ),
+        NAME: "FlexibleUNET"
+    }
+    config[NB_EPOCHS] = n
+    config[DATALOADER][BATCH_SIZE][TRAIN] = b
+    config[DATALOADER][BATCH_SIZE][VALIDATION] = b
+    config[OPTIMIZER][PARAMS][LR] = lr
+    config[SCHEDULER] = REDUCELRONPLATEAU
+    config[SCHEDULER_CONFIGURATION] = {
+        "factor": 0.8,
+        "patience": 5
+    }
+    config[LOSS] = loss
 
 
 def vanilla_experiment(config: dict, b: int = 32, n: int = 50) -> dict:
@@ -442,22 +480,31 @@ def get_experiment_config(exp: int) -> dict:
         config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
         config[OPTIMIZER][PARAMS][LR] = 1e-4
         config[NB_EPOCHS] = 100
+    elif exp == 704:  # Flexible UNET
+        experiment_flexible_unet(
+            config,
+            n=100, b=32, lr=1e-3, loss=LOSS_BCE_WEIGHTED,
+            encoders=[1, 1], decoders=[1, 1], thickness=16,
+        )
+    elif exp == 705:  # Flexible UNET
+        experiment_flexible_unet(
+            config,
+            n=100, b=32, lr=1e-3, loss=LOSS_DICE,
+            encoders=[1, 1], decoders=[1, 1], thickness=16,
+
+        )
     else:
         raise ValueError(f"Unknown experiment {exp}")
     return config
 
 
 def get_training_content(config: dict, device=DEVICE, get_data_loaders_flag: str = True) -> Tuple[torch.nn.Module, torch.optim.Optimizer, dict]:
-    if config[MODEL][NAME] == UNet.__name__:
-        model = UNet(**config[MODEL][ARCHITECTURE])
-    elif config[MODEL][NAME] == MicroConv.__name__:
-        model = MicroConv(**config[MODEL][ARCHITECTURE])
-    elif config[MODEL][NAME] == StackedConvolutions.__name__:
-        model = StackedConvolutions(**config[MODEL][ARCHITECTURE])
-    elif config[MODEL][NAME] == VanillaConvolutionStack.__name__:
-        model = VanillaConvolutionStack(**config[MODEL][ARCHITECTURE])
-    else:
+    allowed_architectures = [UNet, MicroConv, StackedConvolutions, VanillaConvolutionStack, FlexibleUNET]
+    allowed_architectures = {a.__name__: a for a in allowed_architectures}
+    selected_architecture = allowed_architectures.get(config[MODEL][NAME], None)
+    if selected_architecture is None:
         raise ValueError(f"Unknown model {config[MODEL][NAME]}")
+    model = selected_architecture(**config[MODEL][ARCHITECTURE])
     if False:  # Sanity check on model
         n, ch, h, w = 4, 1, 36, 36
         model(torch.rand(n, ch, w, h))
