@@ -6,7 +6,7 @@ def get_non_linearity(activation: str):
         non_linearity = torch.nn.LeakyReLU()
     elif activation == "ReLU":
         non_linearity = torch.nn.ReLU()
-    elif activation is None:
+    elif activation is None or activation == "Identity" or activation == "None":
         non_linearity = torch.nn.Identity()
     else:
         raise ValueError(f"Unknown activation {activation}")
