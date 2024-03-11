@@ -8,7 +8,8 @@ from shared import (
     AUGMENTATION_LIST, AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP,
     SYNTHETIC,
     LOSS, LOSS_BCE, LOSS_DICE, LOSS_BCE_WEIGHTED,
-    TRIVIAL, EASY, MEDIUM, HARD
+    TRIVIAL, EASY, MEDIUM, HARD,
+    DISTILLATION, DISTILLATION_CONFIG, TEACHER
 )
 from model import UNet, StackedConvolutions, VanillaConvolutionStack, MicroConv, FlexibleUNET
 import torch
@@ -493,6 +494,15 @@ def get_experiment_config(exp: int) -> dict:
             encoders=[1, 1], decoders=[1, 1], thickness=16,
 
         )
+    elif exp == 1000:  # Flexible UNET -> Distill stacked conv!
+        experiment_flexible_unet(
+            config,
+            n=100, b=32, lr=1e-3, loss=LOSS_BCE_WEIGHTED,
+            encoders=[1, 1], decoders=[1, 1], thickness=16,
+            refinement_stage_depth=1
+        )
+        config[DISTILLATION] = True
+        config[TEACHER] = 700
     else:
         raise ValueError(f"Unknown experiment {exp}")
     return config

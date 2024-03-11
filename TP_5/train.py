@@ -12,7 +12,9 @@ from shared import (
     TRAIN, VALIDATION, TEST, LR,
     ACCURACY, PRECISION, RECALL, F1_SCORE, IOU,
     DEVICE, SCHEDULER_CONFIGURATION, SCHEDULER, REDUCELRONPLATEAU,
-    LOSS, LOSS_BCE
+    LOSS, LOSS_BCE,
+    DATALOADER, SYNTHETIC,
+    DISTILLATION, TEACHER,
 )
 from metrics import compute_metrics
 from loss import compute_loss
@@ -46,7 +48,8 @@ def training_loop(
     scheduler=None,
     device: str = DEVICE,
     wandb_flag: bool = False,
-    output_dir: Path = None
+    output_dir: Path = None,
+    model_teacher: Optional[torch.nn.Module] = None
 ):
     best_accuracy = 0.
     for n_epoch in tqdm(range(config[NB_EPOCHS])):
@@ -67,7 +70,13 @@ def training_loop(
                 optimizer.zero_grad()
                 with torch.set_grad_enabled(phase == TRAIN):
                     y_pred = model(x)
-                    loss = compute_loss(y_pred, y, mode=config.get(LOSS, LOSS_BCE))
+                    if model_teacher is not None:
+                        with torch.no_grad():
+                            y_teacher = model_teacher(x)
+                        loss = compute_loss(y_pred, y_teacher, mode=config.get(
+                            LOSS, LOSS_BCE), binary_labels_flag=False)
+                    else:
+                        loss = compute_loss(y_pred, y, mode=config.get(LOSS, LOSS_BCE))
                     if torch.isnan(loss):
                         print(f"Loss is NaN at epoch {n_epoch} and phase {phase}!")
                         continue
@@ -114,15 +123,36 @@ def training_loop(
     return model
 
 
+def get_training_content_general(config, device=DEVICE):
+    model, optimizer, dl_dict = get_training_content(config, device=device)
+    if config.get(DISTILLATION, False):
+        teacher_exp = config[TEACHER]
+        config_teacher = get_experiment_config(teacher_exp)
+        model_teacher, _, _ = get_training_content(config_teacher, get_data_loaders_flag=False, device=device)
+        model_teacher.load_state_dict(torch.load(ROOT_DIR/OUTPUT_FOLDER_NAME/config_teacher[NAME]/"best_model.pt"))
+        model_teacher.eval()
+        model_teacher.to(device)
+    else:
+        model_teacher = None
+    return model, optimizer, dl_dict, model_teacher
+
+
 def train(config: dict, output_dir: Path, device: str = DEVICE, wandb_flag: bool = False):
     logging.basicConfig(level=logging.INFO)
     logging.info(f"Training experiment {config[ID]} on device {device}...")
     output_dir.mkdir(parents=True, exist_ok=True)
     with open(output_dir/"config.json", "w") as f:
         json.dump(config, f)
-    model, optimizer, dl_dict = get_training_content(config, device=device)
-    print(config)
+    model, optimizer, dl_dict, model_teacher = get_training_content_general(config, device=device)
     model.to(device)
+    tags = []
+    if config.get(DISTILLATION, False):
+        tags.append("distillation")
+    elif config[DATALOADER].get(SYNTHETIC, False):
+        tags.append("synthetic")
+    else:
+        tags.append("latest")
+
     if wandb_flag:
         import wandb
         wandb.init(
@@ -132,7 +162,7 @@ def train(config: dict, output_dir: Path, device: str = DEVICE, wandb_flag: bool
             # tags=["debug"],
             # tags=["base"],
             # tags=["dice_fix", "synthetic"],
-            tags=["latest"],
+            tags=tags,
             config=config
         )
     scheduler = None
@@ -143,7 +173,7 @@ def train(config: dict, output_dir: Path, device: str = DEVICE, wandb_flag: bool
         else:
             raise NameError(f"Scheduler {config[SCHEDULER]} not implemented")
     model = training_loop(model, optimizer, dl_dict, config, scheduler=scheduler, device=device,
-                          wandb_flag=wandb_flag, output_dir=output_dir)
+                          wandb_flag=wandb_flag, output_dir=output_dir, model_teacher=model_teacher)
 
     if wandb_flag:
         wandb.finish()

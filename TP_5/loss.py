@@ -8,7 +8,8 @@ from shared import LOSS_BCE, LOSS_BCE_WEIGHTED, LOSS_DICE
 def compute_loss(
     y_pred: torch.Tensor,
     y_true: torch.Tensor,
-    mode: Optional[str] = LOSS_BCE
+    mode: Optional[str] = LOSS_BCE,
+    binary_labels_flag: bool = True,
 ) -> torch.Tensor:
     """
     Compute loss based on the predicted and true values.
@@ -24,13 +25,16 @@ def compute_loss(
     """
     assert mode in [LOSS_BCE, LOSS_DICE, LOSS_BCE_WEIGHTED], f"Mode {mode} not supported"
     y_pred_flat = y_pred.view(-1)
-    y_true_flat = y_true.view(-1)
+    if not binary_labels_flag:
+        y_true = torch.sigmoid(y_true)
     if mode == LOSS_BCE:
+        y_true_flat = y_true.view(-1)
         loss = torch.nn.functional.binary_cross_entropy_with_logits(
             y_pred_flat,
             y_true_flat
         )
     elif mode == LOSS_BCE_WEIGHTED:
+        y_true_flat = y_true.view(-1)
         loss = torch.nn.functional.binary_cross_entropy_with_logits(
             y_pred_flat,
             y_true_flat,
