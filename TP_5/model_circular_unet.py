@@ -28,7 +28,8 @@ class ConvolutionStage(torch.nn.Module):
                     ch_inp, ch_outp,
                     k_size=k_size,
                     activation=activation if idx < depth-1 else last_activation,
-                    bias=bias
+                    bias=bias,
+                    padding_mode="replicate"
                 )
             )
         self.conv_stage = torch.nn.Sequential(*self.conv_stage)
@@ -37,7 +38,7 @@ class ConvolutionStage(torch.nn.Module):
         return self.conv_stage(x_in)
 
 
-class EncoderStage(torch.nn.Module):
+class FlexibleEncoderStage(torch.nn.Module):
     """Conv (and extend channels), downsample 2 by skipping samples
     """
 
@@ -61,7 +62,7 @@ class EncoderStage(torch.nn.Module):
         return x, x_ds
 
 
-class DecoderStage(torch.nn.Module):
+class FlexibleDecoderStage(torch.nn.Module):
     """Upsample by 2, Concatenate with skip connection, Conv (and shrink channels)
     """
 
@@ -108,29 +109,31 @@ class FlexibleUNET(BaseModel):
         decoders: List[int] = (1, 1, 1),
         refinement_stage_depth: int = 1,
         bottleneck_depth: int = 1,
+        padding: bool = True,
         bias: bool = True,
     ) -> None:
         super().__init__()
-        super().__init__()
+        self.padding = padding
         self.ch_out = ch_out
         self.encoder_list = torch.nn.ModuleList()
         self.decoder_list = torch.nn.ModuleList()
         # Defining first encoder
         assert len(encoders) == len(decoders), "Number of encoders and decoders should be the same"
         num_layers = len(encoders)
-        self.encoder_list.append(EncoderStage(ch_in, thickness, k_size=k_conv_ds, bias=bias, depth=encoders[0]))
+        self.encoder_list.append(FlexibleEncoderStage(ch_in, thickness, k_size=k_conv_ds, bias=bias, depth=encoders[0]))
         for level in range(1, num_layers+1):
             ch_i = (2**(level-1))*thickness
             ch_o = (2**(level))*thickness
-            # print(ch_i, ch_o)
             if level < num_layers:
                 # Skipping last encoder since we defined the first one outside the loop
-                self.encoder_list.append(EncoderStage(ch_i, ch_o, k_size=k_conv_ds, bias=bias, depth=encoders[level]))
-            self.decoder_list.append(DecoderStage(ch_o+ch_i, ch_i, k_size=k_conv_us,
+                self.encoder_list.append(FlexibleEncoderStage(
+                    ch_i, ch_o, k_size=k_conv_ds, bias=bias, depth=encoders[level]))
+            self.decoder_list.append(FlexibleDecoderStage(ch_o+ch_i, ch_i, k_size=k_conv_us,
                                      bias=bias, depth=decoders[num_layers-level]))
             if level == num_layers:
                 self.bottleneck = ConvolutionStage(
-                    ch_i, ch_o, depth=bottleneck_depth,
+                    ch_i, ch_o,
+                    depth=bottleneck_depth,
                     k_size=k_conv_ds, bias=bias
                 )
         self.refinement_stage = ConvolutionStage(
@@ -144,7 +147,7 @@ class FlexibleUNET(BaseModel):
 
     def forward(self, x_in: torch.Tensor) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
         """Forward UNET pass
-        Need to pad to 40x40 to get 4 scales
+        Need to pad up to 40x40 to get 4 scales
          ```
         (1  ,   40x40)                     REFINE      > (1  , 40x40)
         (16 ,   40x40)----------------->(16 ,   40x40)
@@ -177,7 +180,10 @@ class FlexibleUNET(BaseModel):
         ```
         """
         skipped_list = []
-        x_padded = self.pad_input_tensor(x_in)
+        if self.padding:
+            x_padded = self.pad_input_tensor(x_in)
+        else:
+            x_padded = x_in
         ds_list = [x_padded]
         for level, enc in enumerate(self.encoder_list):
             x_skip, x_ds = enc(ds_list[-1])
@@ -190,7 +196,8 @@ class FlexibleUNET(BaseModel):
             # in_shape = x_dec.shape
             x_dec = dec(x_dec, skipped_list[-1-level])
             # print("Decoding", level, "(", in_shape, "+", skipped_list[-1-level].shape, ") ->", x_dec.shape)
-        x_dec = self.crop_output_tensor(x_dec)
+        if self.padding:
+            x_dec = self.crop_output_tensor(x_dec)
         out = self.refinement_stage(x_dec)
         return out
 
@@ -210,7 +217,8 @@ class FlexibleUNET(BaseModel):
     def crop_output_tensor(x_out: torch.Tensor, w=36, extra=2) -> torch.Tensor:
         if x_out.shape[-1] == w:
             return x_out
-        x_start = extra+w
+        # x_start = extra+w
+        x_start = x_out.shape[-1]//2 - w//2  # CROP IN THE MIDDLE
         cropped = x_out[..., extra:-extra, x_start:x_start+w]
         # print("CROPPING", x_out.shape, cropped.shape)
         return cropped
@@ -245,8 +253,17 @@ def __check_cropping(plot_flag=False):
 
 
 def __check_flex_unet():
-    model = FlexibleUNET(bias=True, encoders=[3, 1, 1], decoders=[1, 1, 3],
-                         refinement_stage_depth=4, bottleneck_depth=1, thickness=32)
+    model = FlexibleUNET(
+        bias=True,
+        # encoders=[1, 1, 1], decoders=[1, 1, 1],
+        # encoders=[1,], decoders=[1,],
+        refinement_stage_depth=4,
+        k_conv_ds=1,
+        k_conv_us=1,
+        bottleneck_depth=1,
+        thickness=8,
+        padding=False,
+    )
     print(model)
     print(f"Model #parameters {model.count_parameters()}")
     n, ch, h, w = 4, 1, 36, 36
@@ -256,5 +273,5 @@ def __check_flex_unet():
 
 
 if __name__ == "__main__":
-    __check_cropping(plot_flag=True)
-    # __check_flex_unet()
+    # __check_cropping(plot_flag=True)
+    __check_flex_unet()

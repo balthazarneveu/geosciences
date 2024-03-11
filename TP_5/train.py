@@ -121,6 +121,7 @@ def train(config: dict, output_dir: Path, device: str = DEVICE, wandb_flag: bool
     with open(output_dir/"config.json", "w") as f:
         json.dump(config, f)
     model, optimizer, dl_dict = get_training_content(config, device=device)
+    print(config)
     model.to(device)
     if wandb_flag:
         import wandb

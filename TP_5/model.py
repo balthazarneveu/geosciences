@@ -2,3 +2,4 @@ from model_microconv import MicroConv
 from model_stackedconv import StackedConvolutions
 from model_unet import UNet
 from model_vanillaconv import VanillaConvolutionStack
+from model_circular_unet import FlexibleUNET

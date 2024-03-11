@@ -14,9 +14,9 @@ def get_non_linearity(activation: str):
 
 
 class BaseConvolutionBlock(torch.nn.Module):
-    def __init__(self, ch_in, ch_out: int, k_size: int, activation="LeakyReLU", bias: bool = True) -> None:
+    def __init__(self, ch_in, ch_out: int, k_size: int, activation="LeakyReLU", bias: bool = True, padding_mode="zeros") -> None:
         super().__init__()
-        self.conv = torch.nn.Conv2d(ch_in, ch_out, k_size, padding=k_size//2, bias=bias)
+        self.conv = torch.nn.Conv2d(ch_in, ch_out, k_size, padding=k_size//2, bias=bias, padding_mode=padding_mode)
         self.non_linearity = get_non_linearity(activation)
 
     def forward(self, x_in: torch.Tensor) -> torch.Tensor:
