@@ -373,7 +373,7 @@ def get_experiment_config(exp: int) -> dict:
         config[DATALOADER]["mode"] = TRIVIAL
         config[NB_EPOCHS] = 70
         config[OPTIMIZER][PARAMS][LR] = 1e-3
-    elif exp == 621:  # TRIVIAL + UNET
+    elif exp == 621 or exp == 625:  # TRIVIAL + UNET !!!!!!!!!!!!!!!!! 625 redo with fixed metrics
         config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
         config[LOSS] = LOSS_BCE_WEIGHTED
         config[DATALOADER][SYNTHETIC] = True
