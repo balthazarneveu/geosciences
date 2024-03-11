@@ -16,3 +16,6 @@ HANDCRAFTED = "handcrafted"
 CLASSIFIER_TYPES = [DECISION_TREE, DECISION_TREE_ON_PCA, RIDGE]
 TRAIN, EVAL = "train", "eval"
 RAW_RESULTS = "raw_results"
+DISTILLATION = "distillation"
+TEACHER = "teacher"
+DISTILLATION_CONFIG = "distillation_config"

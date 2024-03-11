@@ -7,7 +7,7 @@ from shared import (
     SCHEDULER, REDUCELRONPLATEAU, SCHEDULER_CONFIGURATION,
     AUGMENTATION_LIST, AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP,
     SYNTHETIC,
-    LOSS, LOSS_BCE, LOSS_DICE, LOSS_BCE_WEIGHTED,
+    LOSS, LOSS_BCE, LOSS_DICE, LOSS_BCE_WEIGHTED, LOSS_DICE_BCE,
     TRIVIAL, EASY, MEDIUM, HARD,
     DISTILLATION, DISTILLATION_CONFIG, TEACHER
 )
@@ -490,7 +490,7 @@ def get_experiment_config(exp: int) -> dict:
     elif exp == 705:  # Flexible UNET
         experiment_flexible_unet(
             config,
-            n=100, b=32, lr=1e-3, loss=LOSS_DICE,
+            n=100, b=32, lr=1e-3, loss=LOSS_DICE_BCE,
             encoders=[1, 1], decoders=[1, 1], thickness=16,
 
         )

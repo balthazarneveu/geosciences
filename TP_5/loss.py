@@ -1,6 +1,6 @@
 import torch
 from typing import Optional
-from shared import LOSS_BCE, LOSS_BCE_WEIGHTED, LOSS_DICE
+from shared import LOSS_BCE, LOSS_BCE_WEIGHTED, LOSS_DICE, LOSS_DICE_BCE
 # Interesting article on Kaggle about loss functions for segmentation:
 # https://www.kaggle.com/code/bigironsphere/loss-function-library-keras-pytorch
 
@@ -23,7 +23,7 @@ def compute_loss(
     Returns:
         torch.Tensor: The computed loss.
     """
-    assert mode in [LOSS_BCE, LOSS_DICE, LOSS_BCE_WEIGHTED], f"Mode {mode} not supported"
+    assert mode in [LOSS_BCE, LOSS_DICE, LOSS_BCE_WEIGHTED, LOSS_DICE_BCE], f"Mode {mode} not supported"
     y_pred_flat = y_pred.view(-1)
     if not binary_labels_flag:
         y_true = torch.sigmoid(y_true)
@@ -52,6 +52,10 @@ def compute_loss(
         dice = (2.*intersection + smooth)/(y_pred_proba.sum(dim=dimensions) + y_true_flat + smooth)
         loss = 1 - dice
         loss = loss.mean()
+    elif mode == LOSS_DICE_BCE:
+        bcew = compute_loss(y_pred, y_true, mode=LOSS_BCE_WEIGHTED, binary_labels_flag=binary_labels_flag)
+        dice = compute_loss(y_pred, y_true, mode=LOSS_DICE, binary_labels_flag=binary_labels_flag)
+        loss = bcew + 0.3*dice
     else:
         raise ValueError(f"Mode {mode} not supported")
     return loss
