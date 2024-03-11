@@ -337,6 +337,7 @@ def get_experiment_config(exp: int) -> dict:
     elif exp == 503:
         experiment_micro_conv(config, h_dim=4, b=512, n=200)
         config[OPTIMIZER][PARAMS][LR] = 1e-3
+    # TOY EXPERIMENTS
     elif exp == 600:  # EASY + STACKED
         experiment_stacked_convolutions(config, num_layers=5, h_dim=256, n=50)
         config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
@@ -403,6 +404,44 @@ def get_experiment_config(exp: int) -> dict:
         config[DATALOADER]["mode"] = TRIVIAL
         config[NB_EPOCHS] = 50
         config[OPTIMIZER][PARAMS][LR] = 1e-3
+    # RESTART
+    elif exp == 700:  # STACKED CONV
+        # ~ 201/204
+        experiment_stacked_convolutions(config, num_layers=5, h_dim=256, n=50)
+        config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
+        config[LOSS] = LOSS_BCE_WEIGHTED
+        config[NB_EPOCHS] = 100
+    elif exp == 701:  # Micro CONV
+        # ~ 503
+        experiment_micro_conv(config, h_dim=4, b=32, n=200)
+        config[OPTIMIZER][PARAMS][LR] = 1e-3
+        config[NB_EPOCHS] = 100
+        config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
+    elif exp == 702:  # UNET
+        # ~ 402
+        config[DATALOADER][BATCH_SIZE][TRAIN] = 64
+        config[DATALOADER][BATCH_SIZE][VALIDATION] = 64
+        config[SCHEDULER] = REDUCELRONPLATEAU
+        config[SCHEDULER_CONFIGURATION] = {
+            "factor": 0.8,
+            "patience": 5
+        }
+        config[MODEL][ARCHITECTURE]["channels_extension"] = 64
+        config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
+        config[OPTIMIZER][PARAMS][LR] = 1e-4
+        config[NB_EPOCHS] = 100
+    elif exp == 703:  # UNET - extend 24 by default
+        # ~ 402
+        config[DATALOADER][BATCH_SIZE][TRAIN] = 64
+        config[DATALOADER][BATCH_SIZE][VALIDATION] = 64
+        config[SCHEDULER] = REDUCELRONPLATEAU
+        config[SCHEDULER_CONFIGURATION] = {
+            "factor": 0.8,
+            "patience": 5
+        }
+        config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
+        config[OPTIMIZER][PARAMS][LR] = 1e-4
+        config[NB_EPOCHS] = 100
     else:
         raise ValueError(f"Unknown experiment {exp}")
     return config
