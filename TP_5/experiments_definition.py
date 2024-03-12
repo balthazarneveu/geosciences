@@ -34,6 +34,8 @@ def get_experiment_config_latest(exp: int) -> dict:
         experiment_micro_conv(config, n=100, b=128, h_dim=4)
     elif exp == 30:  # Stacked convolutions
         experiment_stacked_convolutions(config, num_layers=5, h_dim=128, n=100)
+    elif exp == 31:  # Stacked convolutions
+        experiment_stacked_convolutions(config, b=128, num_layers=5, h_dim=128, n=100)
     elif exp == 40:  # Classic UNet
         config[DATALOADER][BATCH_SIZE][TRAIN] = 128
         config[DATALOADER][BATCH_SIZE][VALIDATION] = 128
