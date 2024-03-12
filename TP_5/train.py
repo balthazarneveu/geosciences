@@ -14,7 +14,7 @@ from shared import (
     DEVICE, SCHEDULER_CONFIGURATION, SCHEDULER, REDUCELRONPLATEAU,
     LOSS, LOSS_BCE,
     DATALOADER, SYNTHETIC,
-    DISTILLATION, TEACHER,
+    DISTILLATION, TEACHER, DISTILLATION_CONFIG, TEMPERATURE, DISTILLATION_WEIGHT
 )
 from metrics import compute_metrics
 from loss import compute_loss
@@ -71,11 +71,29 @@ def training_loop(
                 with torch.set_grad_enabled(phase == TRAIN):
                     y_pred = model(x)
                     if model_teacher is not None:
+                        # ---------------------------------------------------------------------------
+                        # DISTILLATION
+                        # ---------------------------------------------------------------------------
                         with torch.no_grad():
                             y_teacher = model_teacher(x)
-                        loss = compute_loss(y_pred, y_teacher, mode=config.get(
-                            LOSS, LOSS_BCE), binary_labels_flag=False)
+                        # https://intellabs.github.io/distiller/knowledge_distillation.html
+                        # Nice blogpost on the distillation topic
+                        # One can keep a bit of weights from the original loss
+                        # and give the rest to the teacher supervision
+                        temperature = config[DISTILLATION_CONFIG].get(TEMPERATURE, 1.)
+                        distil_weight = config[DISTILLATION_CONFIG].get(DISTILLATION_WEIGHT, 0.5)
+                        distillation_loss = distil_weight*compute_loss(
+                            y_pred/temperature,
+                            y_teacher/temperature,
+                            mode=LOSS_BCE,
+                            binary_labels_flag=False,
+                        )
+                        label_supervision_loss = compute_loss(y_pred, y, mode=LOSS_BCE, binary_labels_flag=True)
+                        loss = distil_weight*distillation_loss + (1.-distil_weight)*label_supervision_loss
                     else:
+                        # ---------------------------------------------------------------------------
+                        # CLASSIC SUPERVISED TRAINING!
+                        # ---------------------------------------------------------------------------
                         loss = compute_loss(y_pred, y, mode=config.get(LOSS, LOSS_BCE))
                     if torch.isnan(loss):
                         print(f"Loss is NaN at epoch {n_epoch} and phase {phase}!")

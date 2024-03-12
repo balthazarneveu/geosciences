@@ -102,13 +102,14 @@ def display_tensor(img: torch.Tensor, adapt_dynamic_range=True, global_params: d
 
 
 def display_metrics(pred_mask, label, global_params: dict = {}):
-    metrics_dict = compute_metrics(pred_mask, label.to(pred_mask.device))
-    metrics_str = f"{ACCURACY}: {metrics_dict[ACCURACY]:06.1%}"
-    metrics_str += "\n" + "\t | ".join([f"{k}: {metrics_dict[k]:06.1%}" for k in [PRECISION, RECALL]])
-    metrics_str += "\n" + "\t | ".join([f"{k}: {metrics_dict[k]:06.1%}" for k in [F1_SCORE, IOU]])
-    global_params["__output_styles"]["label_image"] = {
-        "title": "Labels " + metrics_str
-    }
+    if label is not None:
+        metrics_dict = compute_metrics(pred_mask, label.to(pred_mask.device))
+        metrics_str = f"{ACCURACY}: {metrics_dict[ACCURACY]:06.1%}"
+        metrics_str += "\n" + "\t | ".join([f"{k}: {metrics_dict[k]:06.1%}" for k in [PRECISION, RECALL]])
+        metrics_str += "\n" + "\t | ".join([f"{k}: {metrics_dict[k]:06.1%}" for k in [F1_SCORE, IOU]])
+        global_params["__output_styles"]["label_image"] = {
+            "title": "Labels " + metrics_str
+        }
 
 
 @interactive(

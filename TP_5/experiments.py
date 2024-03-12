@@ -9,7 +9,8 @@ from shared import (
     SYNTHETIC,
     LOSS, LOSS_BCE, LOSS_DICE, LOSS_BCE_WEIGHTED, LOSS_DICE_BCE,
     TRIVIAL, EASY, MEDIUM, HARD,
-    DISTILLATION, DISTILLATION_CONFIG, TEACHER
+    DISTILLATION, DISTILLATION_CONFIG, TEACHER,
+    TEMPERATURE, DISTILLATION_WEIGHT
 )
 from model import UNet, StackedConvolutions, VanillaConvolutionStack, MicroConv, FlexibleUNET
 import torch
@@ -490,18 +491,44 @@ def get_experiment_config(exp: int) -> dict:
     elif exp == 705:  # Flexible UNET
         experiment_flexible_unet(
             config,
-            n=100, b=32, lr=1e-3, loss=LOSS_DICE_BCE,
+            n=100, b=32, lr=5e-4, loss=LOSS_DICE_BCE,
             encoders=[1, 1], decoders=[1, 1], thickness=16,
-
         )
+    elif exp == 706:  # Flexible UNET B=32
+        experiment_flexible_unet(
+            config,
+            n=100, b=32, lr=5e-4, loss=LOSS_DICE_BCE,
+            encoders=[1, 1], decoders=[1, 1], thickness=16,
+        )
+        config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
+    elif exp == 707:  # Flexible UNET B=64!
+        experiment_flexible_unet(
+            config,
+            n=100, b=64, lr=5e-4, loss=LOSS_DICE_BCE,
+            encoders=[1, 1], decoders=[1, 1], thickness=16,
+        )
+        config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
+    elif exp == 708:  # Flexible UNET 3 scales
+        experiment_flexible_unet(
+            config,
+            n=100, b=32, lr=5e-4, loss=LOSS_DICE_BCE,
+            encoders=[1, 1, 1], decoders=[1, 1, 1], thickness=16,
+        )
+        config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
     elif exp == 1000:  # Flexible UNET -> Distill stacked conv!
         experiment_flexible_unet(
             config,
-            n=100, b=32, lr=1e-3, loss=LOSS_BCE_WEIGHTED,
-            encoders=[1, 1], decoders=[1, 1], thickness=16,
+            n=100, b=32, lr=1e-3, loss=LOSS_BCE,
+            encoders=[1, 1], decoders=[1, 1], thickness=4,
             refinement_stage_depth=1
         )
         config[DISTILLATION] = True
+        config[DISTILLATION_CONFIG] = {
+            TEMPERATURE: 2.,
+            DISTILLATION_WEIGHT: 0.8
+        }
+        # T=10 , 0.5 ! Stagne
+        # T=2 , 0.8 ! Good!
         config[TEACHER] = 700
     else:
         raise ValueError(f"Unknown experiment {exp}")
