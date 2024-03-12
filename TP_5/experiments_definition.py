@@ -32,16 +32,18 @@ def get_experiment_config_latest(exp: int) -> dict:
         vanilla_experiment(config, n=100, b=128)
     elif exp == 20:  # MicoConv experiment
         experiment_micro_conv(config, n=100, b=128, h_dim=4)
-    elif exp == 30:  # Stacked convolutions
-        experiment_stacked_convolutions(config, num_layers=5, h_dim=128, n=100)
-    elif exp == 31:  # Stacked convolutions
+    elif exp == 30:  # Stacked convolutions - 477k
+        experiment_stacked_convolutions(config, b=32, num_layers=5, h_dim=128, n=100)
+    elif exp == 31:  # Stacked convolutions - 477k - bigger batches
         experiment_stacked_convolutions(config, b=128, num_layers=5, h_dim=128, n=100)
+    elif exp == 32:  # Stacked convolutions - 1.9M
+        experiment_stacked_convolutions(config, b=32, num_layers=5, h_dim=256, n=100)
     elif exp == 40:  # Classic UNet
         config[DATALOADER][BATCH_SIZE][TRAIN] = 128
         config[DATALOADER][BATCH_SIZE][VALIDATION] = 128
         config[SCHEDULER] = REDUCELRONPLATEAU
         config[MODEL][ARCHITECTURE]["channels_extension"] = 64
-    elif exp == 50:  # Flexible UNet
+    elif exp == 50:  # Flexible UNet  73.9% dice va
         experiment_flexible_unet(
             config,
             n=100,
