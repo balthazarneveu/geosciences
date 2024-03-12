@@ -33,14 +33,17 @@ def evaluate_model(model, dl_dict, phase=VALIDATION):
         F1_SCORE: 0.,
         IOU: 0.
     }
+    total_elements = 0.
     for img, label in tqdm(current_dataloader):
         with torch.no_grad():
             output = model(img)
-            metrics_on_batch = compute_metrics(output, label)
+            metrics_on_batch = compute_metrics(output, label, reduce="sum")
             for k, v in metrics_on_batch.items():
                 current_metrics[k] += v
+            total_elements += img.shape[0]
+
     for k, v in metrics_on_batch.items():
-        current_metrics[k] /= (len(current_dataloader))
+        current_metrics[k] /= total_elements
         current_metrics[k] = current_metrics[k].item()
     print(f"Metrics on {phase} set")
     print(current_metrics)

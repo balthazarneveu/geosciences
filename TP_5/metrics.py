@@ -9,7 +9,7 @@ def compute_accuracy(y_pred: torch.Tensor, y_true: torch.Tensor, threshold: floa
     return accuracy.item()
 
 
-def compute_metrics(y_pred: torch.Tensor, y_true: torch.Tensor, threshold: float = 0.5, epsilon=1E-12) -> dict:
+def compute_metrics(y_pred: torch.Tensor, y_true: torch.Tensor, threshold: float = 0.5, epsilon=1E-12, reduce="mean") -> dict:
     """Compute metrics for binary segmentation
 
     Args:
@@ -36,7 +36,7 @@ def compute_metrics(y_pred: torch.Tensor, y_true: torch.Tensor, threshold: float
     # True Positives, False Positives, True Negatives, False Negatives
     total_positives = (y_true == 1).float().sum(dim=reduction_dimension)
     true_positive = ((y_pred_bin == 1) & (y_true == 1)).float().sum(dim=reduction_dimension)
-    # WARNING! If there are no positives, we set the true positive to 0.1 to fake a single pixel 
+    # WARNING! If there are no positives, we set the true positive to 0.1 to fake a single pixel
     true_positive = true_positive * (total_positives != 0) + (total_positives == 0) * \
         torch.ones_like(true_positive) * 1.
     false_positive = ((y_pred_bin == 1) & (y_true == 0)).float().sum(dim=reduction_dimension)
@@ -59,10 +59,29 @@ def compute_metrics(y_pred: torch.Tensor, y_true: torch.Tensor, threshold: float
 
     # Intersection over Union (IoU)
     iou = true_positive / (true_positive + false_positive + false_negative + epsilon)
-    return {
-        ACCURACY: accuracy.mean(),
-        PRECISION: precision.mean(),
-        RECALL: recall.mean(),
-        F1_SCORE: f1_score.mean(),
-        IOU: iou.mean()
-    }
+    if reduce == "mean":
+        return {
+            ACCURACY: accuracy.mean(),
+            PRECISION: precision.mean(),
+            RECALL: recall.mean(),
+            F1_SCORE: f1_score.mean(),
+            IOU: iou.mean()
+        }
+    elif reduce == "sum":
+        return {
+            ACCURACY: accuracy.sum(),
+            PRECISION: precision.sum(),
+            RECALL: recall.sum(),
+            F1_SCORE: f1_score.sum(),
+            IOU: iou.sum()
+        }
+    elif reduce == "none" or reduce is None:
+        return {
+            ACCURACY: accuracy,
+            PRECISION: precision,
+            RECALL: recall,
+            F1_SCORE: f1_score,
+            IOU: iou
+        }
+    else:
+        raise ValueError(f"Unknown reduction method {reduce}")

@@ -6,8 +6,8 @@ from infer import load_model
 
 
 def main_quantization(exp: int = 201, device=DEVICE, num_bits: int = 16, eval_flag: bool = True):
-    original_model, dl_dict = load_model(exp, device=device)
-    quantized_model, _ = load_model(exp, device=device, get_data_loaders_flag=False)
+    original_model, dl_dict, model_config = load_model(exp, device=device, batch_size=16)
+    quantized_model, _, _ = load_model(exp, device=device, get_data_loaders_flag=False)
     print(f"model {exp} has  {original_model.count_parameters()} parameters")
     quantized_weights, quantized_params = quantize_model_per_layer(original_model, num_bits=num_bits)
     params_dequant = dequantize_weights_per_layer(quantized_weights, quantized_params)

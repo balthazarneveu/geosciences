@@ -536,13 +536,14 @@ def get_experiment_config(exp: int) -> dict:
             encoders=[4, 2, 1], decoders=[1, 2, 4], thickness=16,
         )
         config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
-    elif exp == 712:  # Bigger UNET
+    elif exp == 712 or exp == 713:  # Bigger UNET - 713 = REDO with fixed metrics
         experiment_flexible_unet(
             config,
             n=100, b=64, lr=5e-4, loss=LOSS_DICE_BCE,
             encoders=[4, 2, 1], decoders=[1, 2, 4], thickness=16, refinement_stage_depth=3
         )
         config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
+    
     elif exp == 900:
         experiment_flexible_unet(
             config,

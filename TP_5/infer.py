@@ -1,6 +1,10 @@
 import argparse
 from typing import Optional
-from shared import ROOT_DIR, OUTPUT_FOLDER_NAME, DEVICE, NAME, VALIDATION, TRAIN
+from shared import (
+    ROOT_DIR, OUTPUT_FOLDER_NAME, DEVICE, NAME, VALIDATION, TRAIN,
+    DATALOADER, BATCH_SIZE, TEST
+)
+
 import sys
 from experiments import get_experiment_config, get_training_content
 import torch
@@ -9,16 +13,21 @@ from tqdm import tqdm
 from pathlib import Path
 
 
-def load_model(exp: int, device: str = DEVICE, get_data_loaders_flag: bool = True):
+def load_model(exp: int, device: str = DEVICE, get_data_loaders_flag: bool = True, batch_size=128, model_name="best_model.pt"):
     output_dir = ROOT_DIR/OUTPUT_FOLDER_NAME
     config = get_experiment_config(exp)
-    inference_dir = output_dir/(config[NAME]+"_inference")
-    inference_dir.mkdir(exist_ok=True, parents=True)
+    config[DATALOADER] = {
+        BATCH_SIZE: {
+            TRAIN: batch_size,
+            VALIDATION: batch_size,
+            TEST: batch_size
+        }
+    }
     model, _, dl_dict = get_training_content(config, device=device, get_data_loaders_flag=get_data_loaders_flag)
-    model.load_state_dict(torch.load(output_dir/config[NAME]/"best_model.pt"))
+    model.load_state_dict(torch.load(output_dir/config[NAME]/model_name))
     model.eval()
     model.to(device)
-    return model, dl_dict
+    return model, dl_dict, config
 
 
 def get_parser(parser: Optional[argparse.ArgumentParser] = None) -> argparse.ArgumentParser:
@@ -38,13 +47,14 @@ def inference_main(argv):
     device = DEVICE
     output_dir = Path(args.output_dir)
     for exp in args.exp:
-        config = get_experiment_config(exp)
+        # config = get_experiment_config(exp)
+        # inference_dir = output_dir/(config[NAME]+"_inference")
+        # inference_dir.mkdir(exist_ok=True, parents=True)
+        # model, _, dl_dict = get_training_content(config, device=DEVICE)
+        # model.load_state_dict(torch.load(output_dir/config[NAME]/"best_model.pt"))
+        model, dl_dict, config = load_model(exp, device=device, get_data_loaders_flag=False)
         inference_dir = output_dir/(config[NAME]+"_inference")
         inference_dir.mkdir(exist_ok=True, parents=True)
-        model, _, dl_dict = get_training_content(config, device=DEVICE)
-        model.load_state_dict(torch.load(output_dir/config[NAME]/"best_model.pt"))
-        model.eval()
-        model.to(device)
         mode = args.mode
         dataloader = dl_dict[mode]
         running_index = 0

@@ -60,6 +60,7 @@ def training_loop(
                            F1_SCORE: 0.,
                            IOU: 0.
                            }
+        total_elements = 0.
         for phase in [TRAIN, VALIDATION]:
             if phase == TRAIN:
                 model.train()
@@ -103,14 +104,15 @@ def training_loop(
                         optimizer.step()
                 current_metrics[phase] += loss.item()
                 if phase == VALIDATION:
-                    metrics_on_batch = compute_metrics(y_pred, y)
+                    metrics_on_batch = compute_metrics(y_pred, y, reduce="sum")
+                    total_elements += y_pred.shape[0]
                     for k, v in metrics_on_batch.items():
                         current_metrics[k] += v
 
             current_metrics[phase] /= (len(dl_dict[phase]))
             if phase == VALIDATION:
                 for k, v in metrics_on_batch.items():
-                    current_metrics[k] /= (len(dl_dict[phase]))
+                    current_metrics[k] /= total_elements
                     try:
                         current_metrics[k] = current_metrics[k].item()
                     except Exception as e:
