@@ -7502,6 +7502,7 @@ a.anchor-link {
 <li>Train set: 7211 patches from 12 wells.</li>
 <li>Validation set: 2463 patches from 3 wells (majority in well 13)</li>
 </ul>
+<p>⚠️ WARNING no wells in common between validation and training ⚠️.</p>
 <p><strong>Observations</strong></p>
 <ul>
 <li>At first sight, the regions we're trying to segment look like thin dark lines.</li>
@@ -7516,6 +7517,110 @@ A list of augmentations is provided in <a href="augmentations.py">augmentations.
 <li>Vertical/Horizontal flips can be performed randomly.
 Random augmentations (and shuffles) are only performed on the training set, validation set is frozen.</li>
 </ul>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h1 id="Revision">Revision<a class="anchor-link" href="#Revision">¶</a></h1><p>Several critical issues have been corrected:</p>
+<ul>
+<li>❌ Problem : Metrics reduction bug</li>
+<li>✔️ Solution: simple unit tests, code review.</li>
+<li>❌ Validation has not intersection with Training set. <em>(=not the same wells)</em>! Not a good idea to monitor training with this.</li>
+<li>✔️ Solution: shuffle dataset (next level would be cross validation)</li>
+<li>❌ Problem: Potential other bugs? - More generally, how to aleviate the doubts I had about the training method and architectures.</li>
+<li>✔️ I created a toy example to validate that everything works correctly</li>
+</ul>
+<h3 id="Metrics-reduction:">Metrics reduction:<a class="anchor-link" href="#Metrics-reduction:">¶</a></h3><ul>
+<li>I corrected a critical bug in metrics computation (reduction must be done over batches after computing dice score/IOU/precision/recall per images) . A <a href="test_metrics.py">unitary pytest</a> has been added.</li>
+<li>Special case of dice score when there is no corrosion (label image = 0). If the prediction is perfect, the original formulation of the dice score gives 0%. I corrected so it is 100% to avoid penalizing. Please note that this workaround breaks the loss "continuity"... (any tiny mispredicted pixel will bring back the dice score to nearly 0%).</li>
+<li>I also checked that metrics don't change when batch size changes...</li>
+</ul>
+<h3 id="Train/Validation-gap-and-monitoring">Train/Validation gap and monitoring<a class="anchor-link" href="#Train/Validation-gap-and-monitoring">¶</a></h3><blockquote>
+<p>⚠️ Although the initial idea of a validation set with wells not contained in the training set seems pretty good. It is a <strong>very</strong> deceitful idea when we're using the validation set as a metric to monitor training:</p>
+<ul>
+<li>pick the best model on validation dice score ... may simply get you an overall bad model but by chance good on the 3 wells of the validation set.</li>
+<li>LR scheduler based on this metric will reduce learning rate</li>
+</ul>
+</blockquote>
+<p>Usually, we use the validation metric to monitor overfitting etc... here the validation set is way more like a "generalization to unseen data" test set.</p>
+<p>Here's what happened, I'd naturally pick the "best" model based on the validation dice score.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">Performances on the "best model" according to the validation dice score</th>
+<th style="text-align:center">Performances at the last epoch</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">Train set Dice 66.2%</td>
+<td style="text-align:center">Train set Dice 76.5%</td>
+</tr>
+<tr>
+<td style="text-align:center"><img alt="" src="figures/dice_per_well_best_model_711.png"/></td>
+<td style="text-align:center"><img alt="" src="figures/dice_per_well_last_model_711.png"/></td>
+</tr>
+<tr>
+<td style="text-align:center">Validation Dice 82.3%</td>
+<td style="text-align:center">Validation Dice 81.1%</td>
+</tr>
+<tr>
+<td style="text-align:center"><img alt="" src="figures/dice_per_well_best_model_711_VALID.png"/></td>
+<td style="text-align:center"><img alt="" src="figures/dice_per_well_last_model_711_VALID.png"/></td>
+</tr>
+</tbody>
+</table>
+<h3 id="Segmentation-training-validation">Segmentation training validation<a class="anchor-link" href="#Segmentation-training-validation">¶</a></h3><p>After spotting the bug in the metrics computations, I decided to check the whole pipelines for bug.</p>
+<ul>
+<li>Added <a href="test_metrics.py">unit tests</a> on metrics</li>
+<li>Created a toy example (with various of complexity) to validate the whole training process when labels are perfect.</li>
+</ul>
+<p>The toy example allows to check:</p>
+<ul>
+<li>That the training loop works properly</li>
+<li>That my models can segment perfectly labeled data properly</li>
+<li>To check that models can be trained using the dice loss.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th style="text-align:center"></th>
+<th style="text-align:center"></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center"><img alt="" src="figures/trivial_toy_example.png"/></td>
+<td style="text-align:center"><img alt="" src="figures/toy_trivial.gif"/></td>
+</tr>
+</tbody>
+</table>
+<!-- |  | |
+|:---:| :---:|
+|![](figures/trivial_training_curves.png) | ![](figures/trivial_training_curves_BCE.png) | -->
+<ul>
+<li>Exp 621 (purple) is trained using weighted BCE (x2 in favor of positive examples) and batches of size 32</li>
+<li>Exp 622 (green) is trained in the same conditions as 621 but with batches of size 256 (<em>which shows a slightly slower convergence</em>)</li>
+<li>Exp 623 (red) is trained using dice loss ... we can see that there's a drop in DICE metric at epoch 23 (but the BCE decreases).</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th style="text-align:center"></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center"><img alt="" src="figures/trivial_training_curves_comparison.png"/></td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 </div>
@@ -7930,61 +8035,6 @@ We can check the first validation batch (32 images).</p>
  'recall': 0.8197945952415466,
  'dice': 0.8448435068130493,
  'iou': 0.7355394959449768} -->
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h1 id="Segmentation-training-validation">Segmentation training validation<a class="anchor-link" href="#Segmentation-training-validation">¶</a></h1><p>After spotting an issue in the metrics computations, I decided to check the whole pipelines for bug.</p>
-<ul>
-<li>Added <a href="test_metrics.py">unit tests</a> on metrics</li>
-<li>Created a toy example (with various of complexity) to validate the whole training process when labels are perfect.</li>
-</ul>
-<p>The toy example allows to check:</p>
-<ul>
-<li>That the training loop works properly</li>
-<li>That my models can segment perfectly labeled data properly</li>
-<li>To check that models can be trained using the dice loss.</li>
-</ul>
-<table>
-<thead>
-<tr>
-<th style="text-align:center"></th>
-<th style="text-align:center"></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:center"><img alt="" src="figures/trivial_toy_example.png"/></td>
-<td style="text-align:center"><img alt="" src="figures/toy_trivial.gif"/></td>
-</tr>
-</tbody>
-</table>
-<!-- |  | |
-|:---:| :---:|
-|![](figures/trivial_training_curves.png) | ![](figures/trivial_training_curves_BCE.png) | -->
-<ul>
-<li>Exp 621 (purple) is trained using weighted BCE (x2 in favor of positive examples) and batches of size 32</li>
-<li>Exp 622 (green) is trained in the same conditions as 621 but with batches of size 256 (<em>which shows a slightly slower convergence</em>)</li>
-<li>Exp 623 (red) is trained using dice loss ... we can see that there's a drop in DICE metric at epoch 23 (but the BCE decreases).</li>
-</ul>
-<table>
-<thead>
-<tr>
-<th style="text-align:center"></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:center"><img alt="" src="figures/trivial_training_curves_comparison.png"/></td>
-</tr>
-</tbody>
-</table>
 </div>
 </div>
 </div>

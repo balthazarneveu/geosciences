@@ -34,6 +34,7 @@ def evaluate_model(model, dl_dict, phase=VALIDATION, detailed_metrics_flag=False
         IOU: 0.
     }
     total_elements = 0.
+    image_index = 0
     detailed_metrics = []
     for img, label in tqdm(current_dataloader):
         with torch.no_grad():
@@ -41,8 +42,12 @@ def evaluate_model(model, dl_dict, phase=VALIDATION, detailed_metrics_flag=False
             metrics_on_batch = compute_metrics(output, label, reduce="none")
             if detailed_metrics_flag:
                 for element_idx in range(img.shape[0]):
-                    detailed_metrics.append({k: v[element_idx].item() for k, v in metrics_on_batch.items()})
-                detailed_metrics.append(metrics_on_batch)
+                    current_detail = {k: v[element_idx].item() for k, v in metrics_on_batch.items()}
+                    current_name = current_dataloader.dataset.path_list[image_index][0].name
+                    current_detail["name"] = current_name
+                    current_detail["well"] = int(current_name.split("_")[1])
+                    detailed_metrics.append(current_detail)
+                    image_index += 1
             for k, v in metrics_on_batch.items():
                 current_metrics[k] += v.sum()
             total_elements += img.shape[0]
