@@ -43,7 +43,7 @@ def get_experiment_config_latest(exp: int) -> dict:
         config[DATALOADER][BATCH_SIZE][VALIDATION] = 128
         config[SCHEDULER] = REDUCELRONPLATEAU
         config[MODEL][ARCHITECTURE]["channels_extension"] = 64
-    elif exp == 50:  # Flexible UNet  73.9% dice va
+    elif exp == 50:  # Flexible [4211124]UNet T16 -> 73.9% dice
         experiment_flexible_unet(
             config,
             n=100,
@@ -52,7 +52,7 @@ def get_experiment_config_latest(exp: int) -> dict:
             loss=LOSS_DICE_BCE,
             encoders=[4, 2, 1], decoders=[1, 2, 4], thickness=16,
         )
-    elif exp == 51:  # Flexible UNet
+    elif exp == 51:  # Flexible [4211124]UNet T4 -> 71% dice
         experiment_flexible_unet(
             config,
             n=100,
@@ -61,7 +61,7 @@ def get_experiment_config_latest(exp: int) -> dict:
             loss=LOSS_DICE_BCE,
             encoders=[4, 2, 1], decoders=[1, 2, 4], thickness=4,
         )
-    elif exp == 52:  # Flexible UNet
+    elif exp == 52:  # Flexible [42124]UNet
         experiment_flexible_unet(
             config,
             n=100,
@@ -69,6 +69,33 @@ def get_experiment_config_latest(exp: int) -> dict:
             lr=5e-4,
             loss=LOSS_DICE_BCE,
             encoders=[4, 2], decoders=[2, 4], thickness=16,
+        )
+    elif exp == 53:  # Flexible [4211124]UNet T64
+        experiment_flexible_unet(
+            config,
+            n=100,
+            b=128,
+            lr=5e-4,
+            loss=LOSS_DICE_BCE,
+            encoders=[4, 2, 1], decoders=[1, 2, 4], thickness=64,
+        )
+    elif exp == 54:  # Flexible [4211124]UNet T16
+        experiment_flexible_unet(
+            config,
+            n=100,
+            b=32,
+            lr=5e-4,
+            loss=LOSS_DICE_BCE,
+            encoders=[4, 2, 1], decoders=[1, 2, 4], thickness=16,
+        )
+    elif exp == 55:  # Flexible [8421248]UNet T16
+        experiment_flexible_unet(
+            config,
+            n=100,
+            b=128,
+            lr=5e-4,
+            loss=LOSS_DICE_BCE,
+            encoders=[8, 4, 2], decoders=[2, 4, 8], thickness=16,
         )
     else:
         raise ValueError(f"Experiment {exp} not found")
