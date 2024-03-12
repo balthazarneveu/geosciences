@@ -9,6 +9,18 @@ from tqdm import tqdm
 from pathlib import Path
 
 
+def load_model(exp: int, device: str = DEVICE, get_data_loaders_flag: bool = True):
+    output_dir = ROOT_DIR/OUTPUT_FOLDER_NAME
+    config = get_experiment_config(exp)
+    inference_dir = output_dir/(config[NAME]+"_inference")
+    inference_dir.mkdir(exist_ok=True, parents=True)
+    model, _, dl_dict = get_training_content(config, device=device, get_data_loaders_flag=get_data_loaders_flag)
+    model.load_state_dict(torch.load(output_dir/config[NAME]/"best_model.pt"))
+    model.eval()
+    model.to(device)
+    return model, dl_dict
+
+
 def get_parser(parser: Optional[argparse.ArgumentParser] = None) -> argparse.ArgumentParser:
     if parser is None:
         parser = argparse.ArgumentParser(description="Train a model")
