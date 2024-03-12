@@ -120,7 +120,7 @@ class SegmentationDatasetSynthetic(SegmentationDataset):
         return new_img, mask
 
 
-def get_dataloaders(config: dict, device: str = DEVICE):
+def get_dataloaders(config: dict, device: str = DEVICE, total_freeze: bool = False) -> dict:
     augmentation_list = config[DATALOADER].get(AUGMENTATION_LIST, [])
     mode = config[DATALOADER].get("mode", None)
     if len(augmentation_list) > 0:
@@ -130,11 +130,14 @@ def get_dataloaders(config: dict, device: str = DEVICE):
         segmentation_dataset_type = SegmentationDatasetSynthetic
     else:
         segmentation_dataset_type = SegmentationDataset
+    if total_freeze:
+        augmentation_list = []
     dl_train = segmentation_dataset_type(
         ROOT_DIR/"data"/TRAIN/IMAGES_FOLDER,
         labels_path=ROOT_DIR/"data"/TRAIN/LABELS_FOLDER,
         augmentation_list=augmentation_list,
         mode=mode,
+        freeze=total_freeze,
         device=device
     )
     dl_valid = segmentation_dataset_type(
@@ -153,7 +156,7 @@ def get_dataloaders(config: dict, device: str = DEVICE):
     dl_dict = {
         TRAIN: DataLoader(
             dl_train,
-            shuffle=True,
+            shuffle=True if not total_freeze else False,
             batch_size=config[DATALOADER][BATCH_SIZE][TRAIN],
         ),
         VALIDATION: DataLoader(

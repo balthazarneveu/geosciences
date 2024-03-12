@@ -543,7 +543,7 @@ def get_experiment_config(exp: int) -> dict:
             encoders=[4, 2, 1], decoders=[1, 2, 4], thickness=16, refinement_stage_depth=3
         )
         config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
-    
+
     elif exp == 900:
         experiment_flexible_unet(
             config,
@@ -638,7 +638,7 @@ def get_experiment_config(exp: int) -> dict:
     return config
 
 
-def get_training_content(config: dict, device=DEVICE, get_data_loaders_flag: str = True) -> Tuple[torch.nn.Module, torch.optim.Optimizer, dict]:
+def get_training_content(config: dict, device=DEVICE, get_data_loaders_flag: str = True, total_freeze=False) -> Tuple[torch.nn.Module, torch.optim.Optimizer, dict]:
     allowed_architectures = [UNet, MicroConv, StackedConvolutions, VanillaConvolutionStack, FlexibleUNET]
     allowed_architectures = {a.__name__: a for a in allowed_architectures}
     selected_architecture = allowed_architectures.get(config[MODEL][NAME], None)
@@ -652,7 +652,7 @@ def get_training_content(config: dict, device=DEVICE, get_data_loaders_flag: str
     config[MODEL]["receptive_field"] = model.receptive_field()
     if get_data_loaders_flag:
         optimizer = torch.optim.Adam(model.parameters(), **config[OPTIMIZER][PARAMS])
-        dl_dict = get_dataloaders(config, device=device)
+        dl_dict = get_dataloaders(config, device=device, total_freeze=total_freeze)
     else:
         optimizer = None
         dl_dict = None

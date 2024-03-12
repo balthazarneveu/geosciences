@@ -24,7 +24,7 @@ def evaluate_test_mode(model, dl_dict, save_path: Path = None):
     return labeled_dict
 
 
-def evaluate_model(model, dl_dict, phase=VALIDATION):
+def evaluate_model(model, dl_dict, phase=VALIDATION, detailed_metrics_flag=False):
     current_dataloader = dl_dict[phase]
     current_metrics = {
         ACCURACY: 0.,
@@ -34,12 +34,17 @@ def evaluate_model(model, dl_dict, phase=VALIDATION):
         IOU: 0.
     }
     total_elements = 0.
+    detailed_metrics = []
     for img, label in tqdm(current_dataloader):
         with torch.no_grad():
             output = model(img)
-            metrics_on_batch = compute_metrics(output, label, reduce="sum")
+            metrics_on_batch = compute_metrics(output, label, reduce="none")
+            if detailed_metrics_flag:
+                for element_idx in range(img.shape[0]):
+                    detailed_metrics.append({k: v[element_idx].item() for k, v in metrics_on_batch.items()})
+                detailed_metrics.append(metrics_on_batch)
             for k, v in metrics_on_batch.items():
-                current_metrics[k] += v
+                current_metrics[k] += v.sum()
             total_elements += img.shape[0]
 
     for k, v in metrics_on_batch.items():
@@ -47,3 +52,4 @@ def evaluate_model(model, dl_dict, phase=VALIDATION):
         current_metrics[k] = current_metrics[k].item()
     print(f"Metrics on {phase} set")
     print(current_metrics)
+    return current_metrics, detailed_metrics

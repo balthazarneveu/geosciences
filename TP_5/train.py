@@ -163,7 +163,7 @@ def train(config: dict, output_dir: Path, device: str = DEVICE, wandb_flag: bool
     output_dir.mkdir(parents=True, exist_ok=True)
     with open(output_dir/"config.json", "w") as f:
         json.dump(config, f)
-    model, optimizer, dl_dict, model_teacher = get_training_content_general(config, device=device)
+    model, optimizer, dl_dict, model_teacher = get_training_content_general(config, device=device, total_freeze=False)
     model.to(device)
     tags = []
     if config.get(DISTILLATION, False):
