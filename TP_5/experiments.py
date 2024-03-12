@@ -515,11 +515,113 @@ def get_experiment_config(exp: int) -> dict:
             encoders=[1, 1, 1], decoders=[1, 1, 1], thickness=16,
         )
         config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
-    elif exp == 1000:  # Flexible UNET -> Distill stacked conv!
+    elif exp == 709:  # UNET
+        experiment_flexible_unet(
+            config,
+            n=100, b=64, lr=5e-4, loss=LOSS_DICE_BCE,
+            encoders=[1, 1, 1], decoders=[1, 1, 1], thickness=16,
+        )
+        config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
+    elif exp == 710:  # UNET
+        experiment_flexible_unet(
+            config,
+            n=100, b=64, lr=5e-4, loss=LOSS_DICE_BCE,
+            encoders=[1, 1, 1], decoders=[1, 1, 1], thickness=64,
+        )
+        config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
+    elif exp == 711:  # Bigger UNET
+        experiment_flexible_unet(
+            config,
+            n=100, b=64, lr=5e-4, loss=LOSS_DICE_BCE,
+            encoders=[4, 2, 1], decoders=[1, 2, 4], thickness=16,
+        )
+        config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
+    elif exp == 712:  # Bigger UNET
+        experiment_flexible_unet(
+            config,
+            n=100, b=64, lr=5e-4, loss=LOSS_DICE_BCE,
+            encoders=[4, 2, 1], decoders=[1, 2, 4], thickness=16, refinement_stage_depth=3
+        )
+        config[DATALOADER][AUGMENTATION_LIST] = [AUGMENTATION_H_ROLL_WRAPPED, AUGMENTATION_FLIP]
+    elif exp == 900:
         experiment_flexible_unet(
             config,
             n=100, b=32, lr=1e-3, loss=LOSS_BCE,
             encoders=[1, 1], decoders=[1, 1], thickness=4,
+            refinement_stage_depth=1
+        )
+    elif exp == 1000:  # Flexible UNET -> Distill stacked conv!   ----------- T=2 - 0.8
+        experiment_flexible_unet(
+            config,
+            n=100, b=32, lr=1e-3, loss=LOSS_BCE,
+            encoders=[1, 1], decoders=[1, 1], thickness=4,
+            refinement_stage_depth=1
+        )
+        config[DISTILLATION] = True
+        config[DISTILLATION_CONFIG] = {
+            TEMPERATURE: 2.,
+            DISTILLATION_WEIGHT: 0.8
+        }
+        # T=10 , 0.5 ! Stagne
+        # T=2 , 0.8 ! Good!
+        config[TEACHER] = 700
+    elif exp == 1001:  # Flexible UNET -> Distill stacked conv!    ----------- T=4 - 0.8
+        experiment_flexible_unet(
+            config,
+            n=100, b=32, lr=1e-3, loss=LOSS_BCE,
+            encoders=[1, 1], decoders=[1, 1], thickness=4,
+            refinement_stage_depth=1
+        )
+        config[DISTILLATION] = True
+        config[DISTILLATION_CONFIG] = {
+            TEMPERATURE: 4.,
+            DISTILLATION_WEIGHT: 0.8
+        }
+        config[TEACHER] = 700
+    elif exp == 1002:  # Flexible UNET -> Distill stacked conv!   ----------- T=8 - 0.8
+        experiment_flexible_unet(
+            config,
+            n=100, b=32, lr=1e-3, loss=LOSS_BCE,
+            encoders=[1, 1], decoders=[1, 1], thickness=4,
+            refinement_stage_depth=1
+        )
+        config[DISTILLATION] = True
+        config[DISTILLATION_CONFIG] = {
+            TEMPERATURE: 8.,
+            DISTILLATION_WEIGHT: 0.8
+        }
+        config[TEACHER] = 700
+    elif exp == 1003:  # Flexible UNET -> Distill stacked conv!   ----------- T=2 - 0.5
+        experiment_flexible_unet(
+            config,
+            n=100, b=32, lr=1e-3, loss=LOSS_BCE,
+            encoders=[1, 1], decoders=[1, 1], thickness=4,
+            refinement_stage_depth=1
+        )
+        config[DISTILLATION] = True
+        config[DISTILLATION_CONFIG] = {
+            TEMPERATURE: 2.,
+            DISTILLATION_WEIGHT: 0.5
+        }
+        config[TEACHER] = 700
+    elif exp == 1004:  # Flexible UNET -> Distill stacked conv!   ----------- T=2 - 0.8 - Bigger UNET
+        experiment_flexible_unet(
+            config,
+            n=100, b=32, lr=1e-3, loss=LOSS_BCE,
+            encoders=[4, 2, 1], decoders=[1, 2, 4], thickness=8,
+            refinement_stage_depth=1
+        )
+        config[DISTILLATION] = True
+        config[DISTILLATION_CONFIG] = {
+            TEMPERATURE: 2.,
+            DISTILLATION_WEIGHT: 0.8
+        }
+        config[TEACHER] = 700
+    elif exp == 1005:  # Flexible UNET -> Distill stacked conv!   ----------- T=2 - 0.8 - Wider
+        experiment_flexible_unet(
+            config,
+            n=100, b=32, lr=1e-3, loss=LOSS_BCE,
+            encoders=[1, 1], decoders=[1, 1], thickness=16,
             refinement_stage_depth=1
         )
         config[DISTILLATION] = True
