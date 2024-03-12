@@ -35,7 +35,6 @@ def get_experiment_config_latest(exp: int) -> dict:
     elif exp == 30:  # Stacked convolutions
         experiment_stacked_convolutions(config, num_layers=5, h_dim=128, n=100)
     elif exp == 40:  # Classic UNet
-        config[LOSS] = LOSS_DICE_BCE
         config[DATALOADER][BATCH_SIZE][TRAIN] = 128
         config[DATALOADER][BATCH_SIZE][VALIDATION] = 128
         config[SCHEDULER] = REDUCELRONPLATEAU
@@ -48,6 +47,24 @@ def get_experiment_config_latest(exp: int) -> dict:
             lr=5e-4,
             loss=LOSS_DICE_BCE,
             encoders=[4, 2, 1], decoders=[1, 2, 4], thickness=16,
+        )
+    elif exp == 51:  # Flexible UNet
+        experiment_flexible_unet(
+            config,
+            n=100,
+            b=128,
+            lr=5e-4,
+            loss=LOSS_DICE_BCE,
+            encoders=[4, 2, 1], decoders=[1, 2, 4], thickness=4,
+        )
+    elif exp == 52:  # Flexible UNet
+        experiment_flexible_unet(
+            config,
+            n=100,
+            b=128,
+            lr=5e-4,
+            loss=LOSS_DICE_BCE,
+            encoders=[4, 2], decoders=[2, 4], thickness=16,
         )
     else:
         raise ValueError(f"Experiment {exp} not found")
