@@ -6,7 +6,7 @@ from shared import (
 )
 
 import sys
-from experiments import get_experiment_config, get_training_content
+from experiments_wrapper import get_experiment_config, get_training_content
 import torch
 import matplotlib.pyplot as plt
 from tqdm import tqdm

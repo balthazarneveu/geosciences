@@ -11,7 +11,7 @@ from shared import (
 )
 from metrics import compute_metrics
 from typing import List
-from experiments import get_experiment_config, get_training_content
+from experiments_wrapper import get_experiment_config, get_training_content
 from synthetic_labels import incruste_annotation
 import torch
 import sys

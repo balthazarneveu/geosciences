@@ -9,7 +9,7 @@ from tqdm import tqdm
 from shared import (
     ROOT_DIR, OUTPUT_FOLDER_NAME,
     ID, NAME, NB_EPOCHS,
-    TRAIN, VALIDATION, TEST, LR,
+    TRAIN, VALIDATION, LR,
     ACCURACY, PRECISION, RECALL, F1_SCORE, IOU,
     DEVICE, SCHEDULER_CONFIGURATION, SCHEDULER, REDUCELRONPLATEAU,
     LOSS, LOSS_BCE,
@@ -20,7 +20,7 @@ from metrics import compute_metrics
 from loss import compute_loss
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from configuration import WANDBSPACE
-from experiments import get_experiment_config, get_training_content
+from experiments_wrapper import get_experiment_config, get_training_content
 WANDB_AVAILABLE = False
 try:
     WANDB_AVAILABLE = True
@@ -115,7 +115,7 @@ def training_loop(
                     current_metrics[k] /= total_elements
                     try:
                         current_metrics[k] = current_metrics[k].item()
-                    except Exception as e:
+                    except Exception as e:  # noqa
                         # Sometimes the metrics are already a float (like 0), so we just pass
                         # print(k, current_metrics[k], e)
                         pass
@@ -143,8 +143,8 @@ def training_loop(
     return model
 
 
-def get_training_content_general(config, device=DEVICE):
-    model, optimizer, dl_dict = get_training_content(config, device=device)
+def get_training_content_general(config, device=DEVICE, total_freeze=False):
+    model, optimizer, dl_dict = get_training_content(config, device=device, total_freeze=total_freeze)
     if config.get(DISTILLATION, False):
         teacher_exp = config[TEACHER]
         config_teacher = get_experiment_config(teacher_exp)
