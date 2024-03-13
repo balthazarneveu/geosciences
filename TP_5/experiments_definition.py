@@ -118,8 +118,8 @@ def get_experiment_config_latest(exp: int) -> dict:
             encoders=[16, 8, 4], decoders=[4, 8, 16], thickness=16
         )
 
-    # Exp 60 series: Improve exp 53
-    elif exp == 60:  # Flexible [4211124]UNet T64 dice  6.4M parameters - 100 epochs - lr e-3
+    # Exp 60 series: Improve exp 53 -----> RISK OF OVERFITTING - use early stopping (actually 53 was a good balance)
+    elif exp == 60:  # Flexible [4211124]UNet T64 dice  6.4M parameters - 100 epochs - lr e-3   ---- OVERFIT
         experiment_flexible_unet(
             config,
             n=300,
@@ -128,7 +128,7 @@ def get_experiment_config_latest(exp: int) -> dict:
             loss=LOSS_DICE_BCE,
             encoders=[4, 2, 1], decoders=[1, 2, 4], thickness=64,
         )
-    elif exp == 61:  # Flexible [4211124]UNet T64  6.4M parameters - 300 epochs - lr 5e-4
+    elif exp == 61:  # Flexible [4211124]UNet T64  6.4M parameters - 300 epochs - lr 5e-4 --- slight signs of overfit
         experiment_flexible_unet(
             config,
             n=300,
@@ -137,7 +137,8 @@ def get_experiment_config_latest(exp: int) -> dict:
             loss=LOSS_DICE_BCE,
             encoders=[4, 2, 1], decoders=[1, 2, 4], thickness=64,
         )
-    elif exp == 62:  # Flexible [4211124]UNet T64  6.4M parameters - 300 epochs - lr 5e-4 -> BCE weighted
+    elif exp == 62:  # Flexible [4211124]UNet T64  6.4M parameters - 300 epochs - lr 5e-4 -> BCE weighted ---- OVERFIT
+        #  -> 83.3% valid 91.1% dice train
         experiment_flexible_unet(
             config,
             n=300,
@@ -146,7 +147,7 @@ def get_experiment_config_latest(exp: int) -> dict:
             loss=LOSS_BCE_WEIGHTED,
             encoders=[4, 2, 1], decoders=[1, 2, 4], thickness=64,
         )
-    elif exp == 63:  # Flexible [4821248]UNet T64  ??? parameters - 300 epochs - lr 5e-4
+    elif exp == 63:  # Flexible [4821248]UNet T64  4.19M parameters - 300 epochs - lr 5e-4
         experiment_flexible_unet(
             config,
             n=100,
@@ -157,6 +158,7 @@ def get_experiment_config_latest(exp: int) -> dict:
         )
     # --------------------------------------------------------------------------------- DISTILLATION EXPERIMENTS ---
     elif exp == 1000:  # Flexible UNET 576k -> Distill large flexible UNET 6.4M (79%)          --> 77.8%
+        # 400kb on disk
         # --------- T=2 - 0.8
         experiment_flexible_unet(
             config,
@@ -170,8 +172,10 @@ def get_experiment_config_latest(exp: int) -> dict:
             DISTILLATION_WEIGHT: 0.8
         }
         config[TEACHER] = 53
+    # DISTILLATION EXPERIMENTS 1001 + variants of distillations parameters
     elif exp == 1001:  # Flexible UNET 101k -> Distill  large flexible UNET 6.4M (79%)        -->  77.5%
         # --------- T=2 - 0.8
+        # 2Mb on disk
         experiment_flexible_unet(
             config,
             n=100, b=32, lr=1e-3, loss=LOSS_BCE,
@@ -184,6 +188,72 @@ def get_experiment_config_latest(exp: int) -> dict:
             DISTILLATION_WEIGHT: 0.8
         }
         config[TEACHER] = 53
+    elif exp == 1002:  # Flexible UNET 101k -> Distill  large flexible UNET 6.4M (79%)
+        # --------- T=8 - 0.8
+        # 2Mb on disk
+        experiment_flexible_unet(
+            config,
+            n=100, b=32, lr=1e-3, loss=LOSS_BCE,
+            encoders=[2, 1, 1], decoders=[2, 1, 1], thickness=16,
+            refinement_stage_depth=1
+        )
+        config[DISTILLATION] = True
+        config[DISTILLATION_CONFIG] = {
+            TEMPERATURE: 8.,
+            DISTILLATION_WEIGHT: 0.8
+        }
+        config[TEACHER] = 53
+    elif exp == 1003:  # Flexible UNET 101k -> Distill  large flexible UNET 6.4M (79%)
+        # --------- T=2 - 0.5
+        # 2Mb on disk
+        experiment_flexible_unet(
+            config,
+            n=100, b=32, lr=1e-3, loss=LOSS_BCE,
+            encoders=[2, 1, 1], decoders=[2, 1, 1], thickness=16,
+            refinement_stage_depth=1
+        )
+        config[DISTILLATION] = True
+        config[DISTILLATION_CONFIG] = {
+            TEMPERATURE: 2.,
+            DISTILLATION_WEIGHT: 0.5
+        }
+        config[TEACHER] = 53
+    elif exp == 1004:  # Flexible UNET 101k -> Distill  large flexible UNET 6.4M (79%)
+        # --------- T=4 - 0.8
+        # 2Mb on disk
+        experiment_flexible_unet(
+            config,
+            n=100, b=32, lr=1e-3, loss=LOSS_BCE,
+            encoders=[2, 1, 1], decoders=[2, 1, 1], thickness=16,
+            refinement_stage_depth=1
+        )
+        config[DISTILLATION] = True
+        config[DISTILLATION_CONFIG] = {
+            TEMPERATURE: 4.,
+            DISTILLATION_WEIGHT: 0.8
+        }
+        config[TEACHER] = 53
+    # -------------------------------------------------------------------------------NO! DISTILLATION EXPERIMENTS ---
+    # Twin experiments without distillation
+    elif exp == 2000:  # Flexible UNET 576k
+        # 400kb on disk
+        # --------- T=2 - 0.8
+        experiment_flexible_unet(
+            config,
+            n=100, b=128, lr=1e-3, loss=LOSS_DICE_BCE,
+            encoders=[4, 2, 1], decoders=[1, 2, 4], thickness=8,
+            refinement_stage_depth=1
+        )
+
+    elif exp == 2001:  # Flexible UNET 101k
+        # --------- T=2 - 0.8
+        experiment_flexible_unet(
+            config,
+            n=100, b=128, lr=1e-3, loss=LOSS_DICE_BCE,
+            encoders=[2, 1, 1], decoders=[2, 1, 1], thickness=16,
+            refinement_stage_depth=1
+        )
+
     else:
         raise ValueError(f"Experiment {exp} not found")
     return config
