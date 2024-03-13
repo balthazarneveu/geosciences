@@ -108,7 +108,7 @@ def get_experiment_config_latest(exp: int) -> dict:
             encoders=[8, 4, 2], decoders=[2, 4, 8], thickness=16,
             refinement_stage_depth=4,
         )
-    elif exp == 71:  # Flexible [16-84148-16]UNet T16 1.04M parameters - 300 epochs
+    elif exp == 71:  # Flexible [16-84148-16]UNet T16 2.34M parameters - 300 epochs >>> FAILED
         experiment_flexible_unet(
             config,
             n=300,
@@ -155,6 +155,35 @@ def get_experiment_config_latest(exp: int) -> dict:
             loss=LOSS_DICE_BCE,
             encoders=[8, 4, 2], decoders=[2, 4, 8], thickness=32,
         )
+    # --------------------------------------------------------------------------------- DISTILLATION EXPERIMENTS ---
+    elif exp == 1000:  # Flexible UNET 576k -> Distill large flexible UNET 6.4M (79%)          --> 77.8%
+        # --------- T=2 - 0.8
+        experiment_flexible_unet(
+            config,
+            n=100, b=32, lr=1e-3, loss=LOSS_BCE,
+            encoders=[4, 2, 1], decoders=[1, 2, 4], thickness=8,
+            refinement_stage_depth=1
+        )
+        config[DISTILLATION] = True
+        config[DISTILLATION_CONFIG] = {
+            TEMPERATURE: 2.,
+            DISTILLATION_WEIGHT: 0.8
+        }
+        config[TEACHER] = 53
+    elif exp == 1001:  # Flexible UNET 101k -> Distill  large flexible UNET 6.4M (79%)        -->  77.5%
+        # --------- T=2 - 0.8
+        experiment_flexible_unet(
+            config,
+            n=100, b=32, lr=1e-3, loss=LOSS_BCE,
+            encoders=[2, 1, 1], decoders=[2, 1, 1], thickness=16,
+            refinement_stage_depth=1
+        )
+        config[DISTILLATION] = True
+        config[DISTILLATION_CONFIG] = {
+            TEMPERATURE: 2.,
+            DISTILLATION_WEIGHT: 0.8
+        }
+        config[TEACHER] = 53
     else:
         raise ValueError(f"Experiment {exp} not found")
     return config
