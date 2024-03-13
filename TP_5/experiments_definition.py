@@ -43,7 +43,7 @@ def get_experiment_config_latest(exp: int) -> dict:
         config[DATALOADER][BATCH_SIZE][VALIDATION] = 128
         config[SCHEDULER] = REDUCELRONPLATEAU
         config[MODEL][ARCHITECTURE]["channels_extension"] = 64
-    elif exp == 50:  # Flexible [4211124]UNet T16 -> 73.9% dice
+    elif exp == 50:  # Flexible [4211124]UNet T16 404k parameters -> 73.9% dice
         experiment_flexible_unet(
             config,
             n=100,
@@ -70,7 +70,7 @@ def get_experiment_config_latest(exp: int) -> dict:
             loss=LOSS_DICE_BCE,
             encoders=[4, 2], decoders=[2, 4], thickness=16,
         )
-    elif exp == 53:  # Flexible [4211124]UNet T64
+    elif exp == 53:  # Flexible [4211124]UNet T64 -> 79% dice  6.4M parameters - close to the 16Gb memory limit ***
         experiment_flexible_unet(
             config,
             n=100,
@@ -79,7 +79,7 @@ def get_experiment_config_latest(exp: int) -> dict:
             loss=LOSS_DICE_BCE,
             encoders=[4, 2, 1], decoders=[1, 2, 4], thickness=64,
         )
-    elif exp == 54:  # Flexible [4211124]UNet T16
+    elif exp == 54:  # Flexible [4211124]UNet T16 - batch32 404k parameters
         experiment_flexible_unet(
             config,
             n=100,
@@ -88,7 +88,7 @@ def get_experiment_config_latest(exp: int) -> dict:
             loss=LOSS_DICE_BCE,
             encoders=[4, 2, 1], decoders=[1, 2, 4], thickness=16,
         )
-    elif exp == 55:  # Flexible [8421248]UNet T16
+    elif exp == 55:  # Flexible [8421248]UNet T16 1.04M parameters
         experiment_flexible_unet(
             config,
             n=100,
@@ -96,6 +96,55 @@ def get_experiment_config_latest(exp: int) -> dict:
             lr=5e-4,
             loss=LOSS_DICE_BCE,
             encoders=[8, 4, 2], decoders=[2, 4, 8], thickness=16,
+        )
+    # Exp 70 series: Improve exp 55
+    elif exp == 70:  # Flexible [8421248]UNet T16 1.04M parameters - 300 epochs
+        experiment_flexible_unet(
+            config,
+            n=300,
+            b=128,
+            lr=5e-4,
+            loss=LOSS_DICE_BCE,
+            encoders=[8, 4, 2], decoders=[2, 4, 8], thickness=16,
+            refinement_stage_depth=4,
+        )
+    elif exp == 71:  # Flexible [8421248]UNet T16 1.04M parameters - 300 epochs
+        experiment_flexible_unet(
+            config,
+            n=300,
+            b=128,
+            lr=5e-4,
+            loss=LOSS_DICE_BCE,
+            encoders=[16, 8, 4], decoders=[4, 8, 16], thickness=16
+        )
+
+    # Exp 60 series: Improve exp 53
+    elif exp == 60:  # Flexible [4211124]UNet T64 dice  6.4M parameters - 100 epochs - lr e-3
+        experiment_flexible_unet(
+            config,
+            n=300,
+            b=128,
+            lr=1e-3,
+            loss=LOSS_DICE_BCE,
+            encoders=[4, 2, 1], decoders=[1, 2, 4], thickness=64,
+        )
+    elif exp == 61:  # Flexible [4211124]UNet T64  6.4M parameters - 300 epochs - lr 5e-4
+        experiment_flexible_unet(
+            config,
+            n=300,
+            b=128,
+            lr=5e-4,
+            loss=LOSS_DICE_BCE,
+            encoders=[4, 2, 1], decoders=[1, 2, 4], thickness=64,
+        )
+    elif exp == 62:  # Flexible [4211124]UNet T64  6.4M parameters - 300 epochs - lr 5e-4 -> BCE weighted
+        experiment_flexible_unet(
+            config,
+            n=300,
+            b=128,
+            lr=5e-4,
+            loss=LOSS_BCE_WEIGHTED,
+            encoders=[4, 2, 1], decoders=[1, 2, 4], thickness=64,
         )
     else:
         raise ValueError(f"Experiment {exp} not found")
