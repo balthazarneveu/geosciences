@@ -108,7 +108,7 @@ def get_experiment_config_latest(exp: int) -> dict:
             encoders=[8, 4, 2], decoders=[2, 4, 8], thickness=16,
             refinement_stage_depth=4,
         )
-    elif exp == 71:  # Flexible [8421248]UNet T16 1.04M parameters - 300 epochs
+    elif exp == 71:  # Flexible [16-84148-16]UNet T16 1.04M parameters - 300 epochs
         experiment_flexible_unet(
             config,
             n=300,
@@ -145,6 +145,15 @@ def get_experiment_config_latest(exp: int) -> dict:
             lr=5e-4,
             loss=LOSS_BCE_WEIGHTED,
             encoders=[4, 2, 1], decoders=[1, 2, 4], thickness=64,
+        )
+    elif exp == 63:  # Flexible [4821248]UNet T64  ??? parameters - 300 epochs - lr 5e-4
+        experiment_flexible_unet(
+            config,
+            n=100,
+            b=128,
+            lr=5e-4,
+            loss=LOSS_DICE_BCE,
+            encoders=[8, 4, 2], decoders=[2, 4, 8], thickness=32,
         )
     else:
         raise ValueError(f"Experiment {exp} not found")
