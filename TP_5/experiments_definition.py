@@ -237,7 +237,6 @@ def get_experiment_config_latest(exp: int) -> dict:
     # Twin experiments without distillation
     elif exp == 2000:  # Flexible UNET 576k
         # 400kb on disk
-        # --------- T=2 - 0.8
         experiment_flexible_unet(
             config,
             n=100, b=128, lr=1e-3, loss=LOSS_DICE_BCE,
@@ -246,13 +245,14 @@ def get_experiment_config_latest(exp: int) -> dict:
         )
 
     elif exp == 2001:  # Flexible UNET 101k
-        # --------- T=2 - 0.8
         experiment_flexible_unet(
             config,
             n=100, b=128, lr=1e-3, loss=LOSS_DICE_BCE,
             encoders=[2, 1, 1], decoders=[2, 1, 1], thickness=16,
             refinement_stage_depth=1
         )
+    # FILTER ON W&B
+    # (1000|1001|1002|1003|1004|0053|2000|2001)
 
     else:
         raise ValueError(f"Experiment {exp} not found")
