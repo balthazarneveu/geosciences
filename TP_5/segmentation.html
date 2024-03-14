@@ -7899,9 +7899,11 @@ Please note that all models do not include the sigmoïd applied to the final lay
 </tr>
 </thead>
 <tbody>
+<tr>
+<td style="text-align:center"><img alt="" src="figures/unet_comparisons.png"/></td>
+</tr>
 </tbody>
 </table>
-<p><img alt="" src="figures/unet_comparisons.png"/></p>
 </div>
 </div>
 </div>
@@ -8133,7 +8135,7 @@ We distilled the best model we got <code>53</code> UNET 6.4M parameters into a s
 If we take a look at the probability prediction errors with the 8bit compressed model, we have a less than an average 0.1% error and visually the segmentations prediction with the quantized weights don't look to far away from the original model.
 We can check the first validation batch (128 images).</p>
 <p><img alt="" src="figures/model_1004_quantization_8bits_error_on_proba.png"/></p>
-<p>Here's the summary on performances on the validations set.</p>
+<p>Here's the summary on performances of quantization of model 1004.</p>
 <table>
 <thead>
 <tr>
@@ -8172,6 +8174,13 @@ We can check the first validation batch (128 images).</p>
 <td style="text-align:center">71.57%</td>
 <td style="text-align:center">71.584%</td>
 <td style="text-align:center">65.15%</td>
+</tr>
+<tr>
+<td style="text-align:center">Dice score <strong>test set</strong></td>
+<td style="text-align:center">66.24%</td>
+<td style="text-align:center">-</td>
+<td style="text-align:center"><strong>66.38%</strong></td>
+<td style="text-align:center">-</td>
 </tr>
 </tbody>
 </table>
@@ -8217,6 +8226,7 @@ We can check the first validation batch (128 images).</p>
 <li>It is possible to shrink the segmentation model down to a point where it can be stored on 550kB (for instance as part of the firmware binary).</li>
 <li>Generalization capabilities to unseen wells are probably not so great (as reflected by the score on the data challenge - I achieved a maximum of 66.24% score)...</li>
 </ul>
+<p>Test set score: 66.24</p>
 </div>
 </div>
 </div>
@@ -8231,8 +8241,10 @@ We can check the first validation batch (128 images).</p>
 <h4 id="Potential-improvements">Potential improvements<a class="anchor-link" href="#Potential-improvements">¶</a></h4><p>Here are some ideas for improvements:</p>
 <ul>
 <li>One important point is that we only have access to a tiny vertical windows and I guess that the relevance could be much improved if we'd treat larger vertical windows (corrosion areas seem to often look a lot like dark lines). Taking decisions near the vertical boundaries of the 36x36 image is much harder when you don't have a clue what's above or below.</li>
-<li>A mixture of experts could have been used (majority voting for several models)...to be later distilled into a smaller model.</li>
+<li>An <strong>ensembling technique</strong> could have been deployed (majority voting between several models)...to be later distilled into a smaller model.</li>
 <li>Hard Negative Mining: Once we get a first network, we could mine the difficult examples (evaluate the performances over all patches and sort the most difficult ones). In a second step, we can re-train the pretrained network on these hard patches.</li>
+<li>About the UNet architecture: Max pooling could have been used (instead of skipping) and stride convolutions instead of bilinear upsampling. Same goes with batch normalization.</li>
+<li>A simple review of the predicted mask sometimes reveal a few isolated unlikely pixels... A few morphological operations like closing/opening could aleviate a few false positives.</li>
 </ul>
 <h4 id="Missing-elements">Missing elements<a class="anchor-link" href="#Missing-elements">¶</a></h4><p>Due to the time spent on the TP-5 lab session and project, here are some points <strong>I didn't have time to implement</strong>.</p>
 <ul>
@@ -8242,9 +8254,10 @@ We can check the first validation batch (128 images).</p>
 <li>try the so called Focal Loss which is said to adapt the weight of the BCE kind of automatically.</li>
 <li>cross validation (take several split of the train, validation set and evaluate the average and standard deviation of the results for 1 experiment configuration). Could have been interesting to check generalization capabilities to totally unseen wells.</li>
 <li>(Not asked) effort to reduce the model memory footprint in RAM or execution time assessment</li>
+<li>Label refinement: questioning the quality of the dataset and labels is important but improving it (either automatically or semi-automatically) is a huge task and moreover, we don't play a fair game here as <strong>we only have 36x36 patches</strong> (and sometimes corrosion is hard to see to the naked eye honnestly - i think the annotations have been made with a full vision of the well, coherence along the vertical axis may have helped annotators a lot).</li>
 </ul>
 <h4 id="True-difficulties">True difficulties<a class="anchor-link" href="#True-difficulties">¶</a></h4><ul>
-<li>Very difficult to assess the quality of annotations. A toy example would be very nice (segment darker lines over various backgrounds).</li>
+<li>Very difficult to assess the quality of annotations. -&gt; A toy example has been made to make sure everything was ok.</li>
 <li><del>Not sure whether or not the validation loss starts increasing because of overfitting or basically that the validation set does not have the same distribution as the training set!</del>   -&gt; Re-done dataset split.</li>
 </ul>
 </div>
