@@ -7484,9 +7484,23 @@ a.anchor-link {
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h1 id="Segmentation">Segmentation<a class="anchor-link" href="#Segmentation">¶</a></h1><ul>
 <li><a href="https://www.linkedin.com/in/balthazarneveu/">Balthazar Neveu</a></li>
-<li>TP-5 <a href="https://www.master-mva.com/cours/introduction-a-lapprentissage-statistique-pour-les-geosciences/">Introduction to geosciences</a> | ENS Paris Saclay - <a href="https://www.master-mva.com/">Master MVA</a> 2024</li>
-<li><a href="https://balthazarneveu.github.io/geosciences">Web version</a> | <a href="https://github.com/balthazarneveu/geoscience">Github</a></li>
+<li>Project= updated TP-5 for <a href="https://www.master-mva.com/cours/introduction-a-lapprentissage-statistique-pour-les-geosciences/">Introduction to geosciences</a> | ENS Paris Saclay - <a href="https://www.master-mva.com/">Master MVA</a> 2024</li>
+<li><a href="https://balthazarneveu.github.io/geosciences">Web version</a> | <a href="https://github.com/balthazarneveu/geosciences">Github</a></li>
 </ul>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h3 id="Disclaimer">Disclaimer<a class="anchor-link" href="#Disclaimer">¶</a></h3><blockquote>
+<p>🆕 since I discovered some issues (mentioned later) compared to the original TP-5 version , I had to start all over again ...</p>
+<p>I modified this technical report with some updates and mentioned it by adding the logo 🆕.</p>
+</blockquote>
 </div>
 </div>
 </div>
@@ -7527,7 +7541,8 @@ Random augmentations (and shuffles) are only performed on the training set, vali
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h1 id="Revision">Revision<a class="anchor-link" href="#Revision">¶</a></h1><p>Several critical issues have been corrected:</p>
+<h1 id="%F0%9F%86%95-Revision">🆕 Revision<a class="anchor-link" href="#%F0%9F%86%95-Revision">¶</a></h1><p>A reboot has been performed compared to the TP-5 version. Sections indicated with 🆕 show the main changes.</p>
+<p>Several critical issues have been corrected:</p>
 <ul>
 <li>❌ Problem : Metrics reduction bug</li>
 <li>✔️ Solution: simple unit tests, code review.</li>
@@ -7601,7 +7616,7 @@ Random augmentations (and shuffles) are only performed on the training set, vali
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="Segmentation-training-validation">Segmentation training validation<a class="anchor-link" href="#Segmentation-training-validation">¶</a></h3><p>After spotting the bug in the metrics computations, I decided to check the whole pipelines for bug.</p>
+<h3 id="%F0%9F%86%95-Segmentation-training-sanity-check">🆕 Segmentation training sanity check<a class="anchor-link" href="#%F0%9F%86%95-Segmentation-training-sanity-check">¶</a></h3><p>After spotting the bug in the metrics computations, I decided to check the whole pipelines for bug.</p>
 <ul>
 <li>Added <a href="test_metrics.py">unit tests</a> on metrics</li>
 <li>Created a toy example (with various of complexity) to validate the whole training process when labels are perfect.</li>
@@ -7656,7 +7671,7 @@ Random augmentations (and shuffles) are only performed on the training set, vali
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Architectures">Architectures<a class="anchor-link" href="#Architectures">¶</a></h2><p>Three families of models are coded in <a href="model.py">model.py</a>.
+<h2 id="Architectures">Architectures<a class="anchor-link" href="#Architectures">¶</a></h2><p>Three families of models are coded in different python files, access <a href="model.py">model.py</a> to find your way
 All models are pretty flexible.
 What can be changed:</p>
 <ul>
@@ -7698,16 +7713,71 @@ Please note that all models do not include the sigmoïd applied to the final lay
 <td style="text-align:center">$(11,21)$</td>
 </tr>
 <tr>
-<td style="text-align:center">U-Net</td>
+<td style="text-align:center">Legacy U-Net</td>
 <td style="text-align:center">775k</td>
 <td style="text-align:center">$(3,3)$</td>
 <td style="text-align:center">3 scales</td>
 <td style="text-align:center">LeakyReLu</td>
 <td style="text-align:center">$(27, 27)$</td>
 </tr>
+<tr>
+<td style="text-align:center">🆕 Flexible U-Net Teacher</td>
+<td style="text-align:center">6.4M</td>
+<td style="text-align:center">$(3^{\circ},3)$</td>
+<td style="text-align:center">3 scales with 4-2-1 conv blocks</td>
+<td style="text-align:center">Leaky Relu</td>
+<td style="text-align:center">$(81,81)$</td>
+</tr>
+<tr>
+<td style="text-align:center">🆕 Flexible U-Net Student</td>
+<td style="text-align:center">576k</td>
+<td style="text-align:center">$(3^{\circ},3)$</td>
+<td style="text-align:center">3 scales with 2-1-1 conv blocks</td>
+<td style="text-align:center">Leaky Relu</td>
+<td style="text-align:center">$(73,73)$</td>
+</tr>
 </tbody>
 </table>
-<h4 id="Stacked-convolution-(single-scale)">Stacked convolution (single scale)<a class="anchor-link" href="#Stacked-convolution-(single-scale)">¶</a></h4><ul>
+<blockquote>
+<p>Please note that the receptive field of the Flexible UNets are larger than the image, we avoid adding too much convolutions at the top level/bottleneck to avoid issues at boundaries and we use repeat padding to let the network think that vertically, the well goes continuously (instead of zero-ing out). For the azimuth direction, a special padding has been designed.</p>
+</blockquote>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h4 id="Vanilla-convolution-stack--(single-scale)"><a href="model_vanillaconv.py">Vanilla convolution stack</a>  (single scale)<a class="anchor-link" href="#Vanilla-convolution-stack--(single-scale)">¶</a></h4><p><em>Remark: I coded the stacked convolution before I re-discovered the slide on the proposed vanilla model ("baseline" model from the slides).</em></p>
+<p>Provided as a "baseline" model, uses ReLu .</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">Proposed diagram by the SLB challenge organizers</th>
+<th style="text-align:center">Netron visualization</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center"><img alt="" src="figures/vanilla_convolution.png"/></td>
+<td style="text-align:center"><img alt="" src="figures/netron_10_vanilla.png"/></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h4 id="Stacked-convolution-(single-scale)"><a href="model_stackedconv.py">Stacked convolution</a> (single scale)<a class="anchor-link" href="#Stacked-convolution-(single-scale)">¶</a></h4><ul>
 <li>Flexible design with a parameterized amount of layers</li>
 <li>Base convolution block is a separable convolution directionwise ($H \perp V$)<ul>
 <li>The horizontal convolution pads using the "circular" convolution option which allows dealing with the specificity of dwell images.</li>
@@ -7730,9 +7800,17 @@ Please note that all models do not include the sigmoïd applied to the final lay
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h4 id="Vanilla-convolution-stack-(single-scale)">Vanilla convolution stack (single scale)<a class="anchor-link" href="#Vanilla-convolution-stack-(single-scale)">¶</a></h4><p><em>Remark: I coded the stacked convolution before I re-discovered the slide on the proposed vanilla model ("baseline" model from the slides).</em></p>
-<p>Provided as a "baseline" model, uses ReLu .</p>
-<p><img alt="" src="figures/vanilla_convolution.png"/></p>
+<h4 id="Legacy-%22Classic%22-UNet"><a href="model_unet.py">Legacy "Classic" UNet</a><a class="anchor-link" href="#Legacy-%22Classic%22-UNet">¶</a></h4><ul>
+<li>3 scales.<ul>
+<li>$(36, 36) \rightarrow (18, 18) \rightarrow (9, 9)$</li>
+<li>Downsample by decimating information (skip 1 pixel over 4)</li>
+<li>Upsample with a bilinear interpolation.</li>
+<li>Concatenate skip connections together.</li>
+</ul>
+</li>
+<li>Large receptive field (27,27)</li>
+</ul>
+<p><img alt="" src="figures/classic_unet.png"/></p>
 </div>
 </div>
 </div>
@@ -7743,16 +7821,87 @@ Please note that all models do not include the sigmoïd applied to the final lay
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h4 id="UNet">UNet<a class="anchor-link" href="#UNet">¶</a></h4><ul>
-<li>3 scales.<ul>
-<li>$(36, 36) \rightarrow (18, 18) \rightarrow (9, 9)$</li>
-<li>Downsample by decimating information (skip 1 pixel over 4)</li>
-<li>Upsample with a bilinear interpolation.</li>
-<li>Concatenate skip connections together.</li>
+<h1 id="%F0%9F%86%95-Flexible-UNET">🆕 <a href="model_circular_unet.py">Flexible UNET</a><a class="anchor-link" href="#%F0%9F%86%95-Flexible-UNET">¶</a></h1><p>After the "reboot", I decided to recode a new UNET:</p>
+<ul>
+<li>pre-pad the inputs (circular padding on the azimuth direction) and crop at the end.</li>
+<li>extend the channels dimension by a factor of 2 when downsampling, shrink the channels by 2 when upsampling.</li>
+<li>Allow to specify:<ul>
+<li>the amount of convolution blocks per scale for both encoder and decoder (and bottleneck)</li>
+<li>the thickness (width) used at the first scale... the rest is deduced progressively (<em>using the rule x2 when downsampling by 2</em>)</li>
 </ul>
 </li>
-<li>Large receptive field (27,27)</li>
 </ul>
+<p>During the padding phase, we repeat a few pixels at the top and bottom (to go to a size of 40 instead of 36 which allows adding a potential 4th scale - this was not retained as the best model though and allows increasing the receptive field).</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">Padding mechanism for the flexible circular UNet</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center"><img alt="" src="figures/circular_padding.png"/></td>
+</tr>
+</tbody>
+</table>
+<p>Syntax for the encoder / bottleneck / decoder goes as follows: <code>[4 , 2, 1], 1, [1, 2, 4 ]</code>  and the convolution block Thickness. It allows easily playing with the architecture.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">Exp id</th>
+<th style="text-align:center">Dice Validation</th>
+<th style="text-align:center">Encoder</th>
+<th style="text-align:center">Bottlneck</th>
+<th style="text-align:center">Decoder</th>
+<th style="text-align:center">Thickness</th>
+<th style="text-align:center"># params</th>
+<th style="text-align:center">diagram</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">53</td>
+<td style="text-align:center">79%</td>
+<td style="text-align:center">[4, 2, 1]</td>
+<td style="text-align:center">1</td>
+<td style="text-align:center">[1, 2, 4]</td>
+<td style="text-align:center">64</td>
+<td style="text-align:center">6.4M params</td>
+<td style="text-align:center"><img alt="" src="figures/netron_unet_53.png"/></td>
+</tr>
+<tr>
+<td style="text-align:center">2001</td>
+<td style="text-align:center">76%</td>
+<td style="text-align:center">[4, 2, 1]</td>
+<td style="text-align:center">1</td>
+<td style="text-align:center">[1, 2, 4]</td>
+<td style="text-align:center">16</td>
+<td style="text-align:center">576k params</td>
+<td style="text-align:center"><img alt="" src="figures/netron_unet_1004png.png"/></td>
+</tr>
+<tr>
+<td style="text-align:center">52</td>
+<td style="text-align:center">71%</td>
+<td style="text-align:center">[4, 2]</td>
+<td style="text-align:center">1</td>
+<td style="text-align:center">[2, 4]</td>
+<td style="text-align:center">16</td>
+<td style="text-align:center">219k params</td>
+<td style="text-align:center"><img alt="" src="figures/netron_exp52_miniUnet_2layers.png"/></td>
+</tr>
+</tbody>
+</table>
+<p>Note that the architecture defined in exp 2001 (with 576k parameters) performances will be boosted to 79% dice score to when trained with distillation  (exp 1004).</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">The more the merrier... more parameters and larger architectures lead to better performances</th>
+</tr>
+</thead>
+<tbody>
+</tbody>
+</table>
+<p><img alt="" src="figures/unet_comparisons.png"/></p>
 </div>
 </div>
 </div>
@@ -7765,23 +7914,25 @@ Please note that all models do not include the sigmoïd applied to the final lay
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <hr/>
 <h1 id="Taining">Taining<a class="anchor-link" href="#Taining">¶</a></h1><h3 id="Defining-experiments">Defining experiments<a class="anchor-link" href="#Defining-experiments">¶</a></h3><ul>
-<li>An experiment is defined by as specific ID (like 300) and the whole configuration is versioned under git in the <a href="experiments.py">experiments.py</a> file:<ul>
+<li>An experiment is defined by as specific ID (like 300) and the whole configuration is versioned under git in the <a href="experiments_definition.py">experiments_definition.py</a> file:<ul>
 <li>architecture (model name, number of layers, convolution sizes)</li>
 <li>augmentations</li>
-<li>loss</li>
+<li>loss (BCE, 🆕  BCE+Dice, BCE with more weights to the positive samples).</li>
 <li>hyper parameters</li>
+<li>distillation parameters (teacher is just the ID of a previous experiment, temperature, weight between distillation loss and label loss) 🆕</li>
 </ul>
 </li>
-<li>Tracking is performed using <a href="https://wandb.ai/balthazarneveu/geosciences-segmentation/workspace?workspace=user-balthazarneveu">Weights and Biases</a></li>
+<li>Tracking is performed using <strong><a href="https://wandb.ai/balthazarneveu/corrosion-segmentation">Weights and Biases</a> see the dashboard here</strong></li>
 </ul>
+<p><img alt="" src="figures/wandb_tracking.png"/></p>
 <h3 id="Infrastructure">Infrastructure<a class="anchor-link" href="#Infrastructure">¶</a></h3><ul>
-<li>It is possible to train locally with a Nvidia very tiny GPU T500 with 4Gb of RAM.<ul>
-<li><code>python TP_5/train.py -e 300 301</code></li>
+<li>It is possible to train some experiments locally with a Nvidia very tiny GPU T500 with 4Gb of RAM.<ul>
+<li><code>python TP_5/train.py -e 53 10</code></li>
 <li><code>-nowb</code> allows disabling logging to weights and biases for quick prototyping</li>
 <li><code>-e</code> to specify a list of experiments.</li>
 </ul>
 </li>
-<li>The same experiment can be trained on a remote server <code>python TP_5/remote_training.py -e 300 301 -u kaggle_username -p</code></li>
+<li>The same experiment can be trained on a remote server <code>python TP_5/remote_training.py -e 53 10 -u kaggle_username -p</code></li>
 <li>To be able to train on the remote servers of Kaggle with 16Gb of RAM, I customized a remote training template that I wrote (<a href="https://github.com/balthazarneveu/mva_pepites">MVA-Pepites</a>). I hosted the <a href="https://www.kaggle.com/datasets/balthazarneveu/mva-geosciences-segmentation-dataset-slb">dataset</a> under Kaggle.
 It is possible to train several experiments sequentially. More details here : <a href="https://github.com/balthazarneveu/mva_pepites/blob/main/illustrations/overview.png?raw=true">remote training</a></li>
 </ul>
@@ -7802,11 +7953,12 @@ It is possible to train several experiments sequentially. More details here : <a
 <li>Segmentation specific metrics : Dice loss (also named F1-score) to measure the balance between precision and recall.</li>
 <li>IoU (intersection over union).</li>
 </ul>
-<p>We train the network using BCE loss (with logits). The problem is casted as a per-pixel binary classification (background = 0, foreground = 1). Since the background class is over represented, we can weight the positive class a bit more.
+<p>🆕  We train the network using <del>BCE loss (with logits)</del> a combination of the <strong>Dice loss and BCE loss.</strong></p>
+<p>The problem is casted as a per-pixel binary classification (background = 0, foreground = 1). Since the background class is over represented, we can weight the positive class a bit more.
 The <a href="loss.py">loss.py</a> file shows the possibilities.</p>
 <ul>
 <li>The best model selection is performed on the accuracy criterion (legacy)</li>
-<li>The learning rate plateau decision is performed on the validation loss (BCE).</li>
+<li>The learning rate plateau decision is performed on the validation loss.</li>
 </ul>
 </div>
 </div>
@@ -7818,23 +7970,49 @@ The <a href="loss.py">loss.py</a> file shows the possibilities.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h1 id="Training-curves-analyzis">Training curves analyzis<a class="anchor-link" href="#Training-curves-analyzis">¶</a></h1><p>Let's see how the dice metric evolves for various experiments (different architectures or hyperparmeters). We systematically have decreasing BCE losses on the training set but stops decreasing or increases on the validation set. This may be explained as:</p>
+<h1 id="Training-curves-analyzis">Training curves analyzis<a class="anchor-link" href="#Training-curves-analyzis">¶</a></h1><h4 id="Searching-for-the-best-architecture-and-hyper-parameters">Searching for the best architecture and hyper parameters<a class="anchor-link" href="#Searching-for-the-best-architecture-and-hyper-parameters">¶</a></h4><p>Below we exhibit all tests which have been performed (various archicture, sizes and several experiment to check hyper parameters)</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">Dice validation score</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center"><img alt="" src="figures/models_training_comparison_curves.png"/></td>
+</tr>
+<tr>
+<td style="text-align:center">Experiments configurations summary</td>
+</tr>
+<tr>
+<td style="text-align:center"><img alt="" src="figures/models_training_comparison.png"/></td>
+</tr>
+</tbody>
+</table>
+<h1 id="Best-model-(teacher)">Best model (teacher)<a class="anchor-link" href="#Best-model-(teacher)">¶</a></h1><p>Experiment 53 .</p>
 <ul>
-<li>an overfitting phenomenon despite efforts to implement relevant augmentations</li>
-<li>or the network trying to be efficient for all wells data and being less efficient on the wells dedicated to validation. <em>To verify this hypothesis, we'd need to filter metrics by well which requires trickier code</em>.</li>
-</ul>
-<p><img alt="" src="figures/train_validation_losses.png"/></p>
-<p>Beware that the BCE loss may not reflect the performances for segmentation, which is why we also monitor validation metrics during training.</p>
-<p><img alt="" src="figures/metrics_iou_dice.png"/></p>
-<hr/>
-<h1 id="Best-model">Best model<a class="anchor-link" href="#Best-model">¶</a></h1><p>Best dice metric was achieved with <strong>experiment 201</strong> (in brown), <code>dice=83.7%</code> . In this experiment, we use:</p>
-<ul>
-<li>Stacked Convolution Network 1.904M (5 layers, <code>h_dim=256</code>, conv $3^{\circ} \perp 5$ , LeakyReLu, receptive field $(11,21)$.</li>
-<li>Adam Optimizer Learning rate: $10^{-4}$, plateau (patience 5 epochs, LR decrease factor : $0.8$)</li>
-<li>Loss: Weighted BCE with a weight of 2 on the positive examples.</li>
+<li>Flexible UNET</li>
+<li>3 scales, encoder [4, 2, 1] - bottleneck 1 - decoder [1, 2, 4]. Convolution block thickness 16, Leaky Relu.</li>
+<li>Circular padding</li>
+<li>6.4M parameters.</li>
+<li>Adam Optimizer Learning rate LR $5 10^{-4}$  plateau (patience 10 epochs, LR decrease factor : $0.8$)</li>
+<li>Stopped after 100 epochs before models start to overfit.</li>
 <li>Augmentation: Horizontal shifts, vertical and horizontal flips.</li>
-<li>Batch size = 32</li>
+<li>Batch size 128</li>
 </ul>
+<hr/>
+<h4 id="Overfitting-for-UNet-with-more-than-4-million-parameters.">Overfitting for UNet with more than 4 million parameters.<a class="anchor-link" href="#Overfitting-for-UNet-with-more-than-4-million-parameters.">¶</a></h4><p>Can we push this model further?</p>
+<p>If you let the "big" networks train longer, we nottice that these end up overfitting (in the sense that training loss decreases and validation increases... while the dice loss we monitor remains kind of constant.)</p>
+<p><img alt="" src="figures/overfitting.png"/></p>
+<p>The spotted overfitting truly affects the generalization capability of the model, making it go from 62% score to 58% on the challenge test set.</p>
+<p>Note: I didn't have time to implement extra augmentations such as</p>
+<ul>
+<li>exposure variation</li>
+<li>S-curves</li>
+<li>gaussian noise addition</li>
+<li>geometric shear or tiny vertical rescales.</li>
+</ul>
+<p>But I'm not sure that these extra augmentations or weight decay would be enough to prevent overfitting.</p>
 </div>
 </div>
 </div>
@@ -7846,7 +8024,7 @@ The <a href="loss.py">loss.py</a> file shows the possibilities.</p>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <hr/>
-<h1 id="Results-visualization">Results visualization<a class="anchor-link" href="#Results-visualization">¶</a></h1><h3 id="Batch-inference">Batch inference<a class="anchor-link" href="#Batch-inference">¶</a></h3><p><code>python TP_5/infer.py -e 201 -m validation -o TP_5/pretrained_models</code></p>
+<h1 id="Results-visualization">Results visualization<a class="anchor-link" href="#Results-visualization">¶</a></h1><h3 id="Batch-inference">Batch inference<a class="anchor-link" href="#Batch-inference">¶</a></h3><p><code>python TP_5/infer.py -e 1004 -m validation -o TP_5/__pretrained_models</code></p>
 <p><img alt="" src="figures/inference_validation.png"/></p>
 <h3 id="Interactive-visualization">Interactive visualization<a class="anchor-link" href="#Interactive-visualization">¶</a></h3><p>To be able to visualize results, it is possible to perform live inference and compare several models.
 Inference is performed live on the GPU</p>
@@ -7866,10 +8044,10 @@ Inference is performed live on the GPU</p>
 </tr>
 </tbody>
 </table>
-<p><code>python TP_5/interactive_inference.py -i "TP_5/data/train/images/well_2*.npy" -e 201 402 300 -m TP_5/pretrained_models --gui qt --preload</code></p>
+<p><code>python TP_5/interactive_inference.py -i "TP_5/data/train/images/well_2*.npy" -e 53 1004 -m TP_5/pretrained_models --gui qt --preload</code></p>
 <ul>
 <li>Using the right regexp, in the <code>-i</code> argument, you can select training, validation or test images.</li>
-<li>Pretrained models (201 Stacked convolutions, 300 Vanilla convolutions , 402 UNET) are provided.</li>
+<li>Pretrained models (53 UNet6.4k, 1004 UNet 576k parameters) are provided.</li>
 </ul>
 </div>
 </div>
@@ -7881,7 +8059,8 @@ Inference is performed live on the GPU</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h1 id="Results-analyzis">Results analyzis<a class="anchor-link" href="#Results-analyzis">¶</a></h1><h3 id="Color-code">Color code<a class="anchor-link" href="#Color-code">¶</a></h3><ul>
+<h1 id="Results-analyzis">Results analyzis<a class="anchor-link" href="#Results-analyzis">¶</a></h1><p><img alt="" src="figures/final_gui_interface_2.png"/></p>
+<h3 id="Color-code">Color code<a class="anchor-link" href="#Color-code">¶</a></h3><ul>
 <li>Pixels flagged in black or green: correctly labeled (black=background, green=foreground)</li>
 <li>Pixels flagged in red: predicted background (0), groundtruth = foreground (1) <em>a.k.a False Negative</em></li>
 <li>Pixels flagged in blue: predicted foreground (1), groundtruth = background (0) <em>a.k.a False Positive</em></li>
@@ -7929,55 +8108,17 @@ Inference is performed live on the GPU</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h1 id="Limitations-and-potential-improvements">Limitations and potential improvements<a class="anchor-link" href="#Limitations-and-potential-improvements">¶</a></h1><h4 id="Potential-improvements">Potential improvements<a class="anchor-link" href="#Potential-improvements">¶</a></h4><p>Here are some ideas for improvements:</p>
-<ul>
-<li>It seems like a lot of labeled segmentated areas are single continuous lines...but our predictions are sometimes broken in several pieces...<ul>
-<li>Even the U-Net with its large receptive field has not been able to fully cope with this property. Performing extra downsamples by <strong>maxpooling over the vertical dimension</strong> only and then repeating the information when upsampling could allow to share the information at all scales. In practice, we could add more scales to the U-Net but only in the vertical dimension.</li>
-<li>Using <strong>attention mechanism</strong> may allow sharing information across the whole image.</li>
-</ul>
-</li>
-</ul>
-<table>
-<thead>
-<tr>
-<th style="text-align:center"><img alt="" src="figures/broken_line_UNET.png"/></th>
-<th style="text-align:center"><img alt="" src="figures/broken_line_Stacked_conv.png"/></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:center">UNet predicts 2 thin areas of corrosion which is wrong. Also nottice the top and bottom rows which are almost always wrong, this may come from the padding issue</td>
-<td style="text-align:center">Stacked convolution network saves the day - but let's not make it a generality and the predicted result does not really match the expected mask anyway</td>
-</tr>
-</tbody>
-</table>
-<ul>
-<li>Hard Negative Mining: Once we get a first network, we could mine the difficult examples (evaluate the performances over all patches and sort the most difficult ones). In a second step, we can re-train the pretrained network on these hard patches.</li>
-</ul>
-<h4 id="Limitations">Limitations<a class="anchor-link" href="#Limitations">¶</a></h4><p>Due to the time spent on this lab session, here are some points <strong>I didn't have time to implement</strong>.</p>
-<ul>
-<li>"Dice Loss Bug": For some reason, I could not minimize the dice loss (1-dice coefficient). Don't know whether the loss is wrong or not.</li>
-<li>Extra augmentation by a bit of additive white gaussian noise, blur or sharpening, multiply the signals to slightly augment the dynamic range, add S curves to augment (increase/decrease contrast).</li>
-<li>perform an evaluation of the metrics per well (there may be more difficult wells).</li>
-<li>try the so called Focal Loss which is said to adapt the weight of the BCE kind of automatically.</li>
-<li>cross validation (take several split of the train, validation set and evaluate the average and standard deviation of the results for 1 experiment configuration).</li>
-</ul>
-<h4 id="True-difficulties">True difficulties<a class="anchor-link" href="#True-difficulties">¶</a></h4><ul>
-<li>Very difficult to assess the quality of annotations. A toy example would be very nice (segment darker lines over various backgrounds).</li>
-<li>Not sure whether or not the validation starts increasing because of overfitting or basically that the validation set does not have the same distribution as the training set!</li>
-</ul>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h1 id="Making-the-model-lightweight">Making the model lightweight<a class="anchor-link" href="#Making-the-model-lightweight">¶</a></h1><h3 id="Weights-quantization">Weights quantization<a class="anchor-link" href="#Weights-quantization">¶</a></h3><p><a href="model_quantization.html">Auxiliary notebook on quantization</a> | code: <a href="model_quantization.ipynb">model_quantization.ipynb</a></p>
-<p>🪶 We'll use model <code>201</code> at first which only weights 7.26Mb on disk as storing only 1.9M parameters.</p>
+<h1 id="Making-the-model-lightweight">Making the model lightweight<a class="anchor-link" href="#Making-the-model-lightweight">¶</a></h1><blockquote>
+<p>Feel free to read the <strong><a href="https://wandb.ai/balthazarneveu/corrosion-segmentation/reports/Corrosion-segmentation--Vmlldzo3MTQ1MTAy">Weights and biases report on compressing the model</a></strong></p>
+</blockquote>
+<p>The following figures shows that performances remain equivalent with a huge reduction of model size and storage footprint (25MB teacher -&gt; 550kb student + 8bits quantization).</p>
+<p><img alt="" src="figures/summary_validation_set.png"/></p>
+<h3 id="Distillation">Distillation<a class="anchor-link" href="#Distillation">¶</a></h3><p>🔎 <a href="https://wandb.ai/balthazarneveu/corrosion-segmentation/reports/Corrosion-segmentation--Vmlldzo3MTQ1MTAy#quantization">Weights and biases report section on distillation</a></p>
+<p>Distillation has been added to the main training without the need to rewrite the whole code.
+We distilled the best model we got <code>53</code> UNET 6.4M parameters into a smaller 564k model (<code>1004</code>) which achieves similar performances.</p>
+<h3 id="Weights-quantization">Weights quantization<a class="anchor-link" href="#Weights-quantization">¶</a></h3><p>🔎 <a href="https://wandb.ai/balthazarneveu/corrosion-segmentation/reports/Corrosion-segmentation--Vmlldzo3MTQ1MTAy#quantization">Weights and biases report section on quantization</a></p>
+<p><a href="model_quantization.html">Auxiliary notebook on quantization</a> | code: <a href="model_quantization.ipynb">model_quantization.ipynb</a></p>
+<p>🪶 We'll use distilled model <code>1004</code> (UNET 564k) at first which weights 2.2Mb on disk as storing only 1.9M parameters.</p>
 <ul>
 <li>We can quantify the weights to any precision we'd like 16bits or 8bits.</li>
 <li>But we can try 12 or 4bits which would require a dedicated packing algorithm.</li>
@@ -7986,13 +8127,13 @@ Inference is performed live on the GPU</p>
 <p>Weight quantization purpose is just to compress storage space (not RAM) at the cost of decompressing the weights. Not that lossless zip-like compression could be applied on top of that).</p>
 </blockquote>
 <h4 id="Remarks">Remarks<a class="anchor-link" href="#Remarks">¶</a></h4><p>Below is the global distribution of convolution weights of the model, no distinction made between layers.</p>
-<p><img alt="" src="figures/weights_global_distrib.png"/></p>
+<p><img alt="" src="figures/model_1004_global_weights.png"/></p>
 <p>By analyzing the distribution of weights at each layer, it is clear that each layer's weight has its own range of values which is why I picked to quantify per layer.</p>
 <p>By compressing to signed 8bit integer weights, we're able to shrink the model by a factor of 4.
 If we take a look at the probability prediction errors with the 8bit compressed model, we have a less than an average 0.1% error and visually the segmentations prediction with the quantized weights don't look to far away from the original model.
-We can check the first validation batch (32 images).</p>
-<p><img alt="" src="figures/quant_8bits.png"/></p>
-<p>We need to lead more thorough validation and compute validation metrics over the whole validation set.</p>
+We can check the first validation batch (128 images).</p>
+<p><img alt="" src="figures/model_1004_quantization_8bits_error_on_proba.png"/></p>
+<p>Here's the summary on performances on the validations set.</p>
 <table>
 <thead>
 <tr>
@@ -8006,31 +8147,31 @@ We can check the first validation batch (32 images).</p>
 <tbody>
 <tr>
 <td style="text-align:center">Size on disk</td>
-<td style="text-align:center">7.26Mb</td>
-<td style="text-align:center">3.6Mb</td>
-<td style="text-align:center">1.8Mb</td>
-<td style="text-align:center">~1Mb</td>
+<td style="text-align:center">2.2MB</td>
+<td style="text-align:center">1.1MB</td>
+<td style="text-align:center">550kB</td>
+<td style="text-align:center">$\leq$ 300kB</td>
 </tr>
 <tr>
 <td style="text-align:center">Format</td>
 <td style="text-align:center">Float32</td>
 <td style="text-align:center">int16</td>
 <td style="text-align:center">int8</td>
-<td style="text-align:center">packed 1 bit sign, 3bits content</td>
+<td style="text-align:center">packed 1 bit of sign + 3bits content</td>
 </tr>
 <tr>
 <td style="text-align:center">Dice Score</td>
-<td style="text-align:center">83.7%</td>
-<td style="text-align:center">83.7%</td>
-<td style="text-align:center">83.6%</td>
-<td style="text-align:center">84.4%</td>
+<td style="text-align:center">78.937%</td>
+<td style="text-align:center">78.95%</td>
+<td style="text-align:center">78.956%</td>
+<td style="text-align:center">73.41%</td>
 </tr>
 <tr>
 <td style="text-align:center">IoU</td>
-<td style="text-align:center">72.47%</td>
-<td style="text-align:center">72.47%</td>
-<td style="text-align:center">72.43%</td>
-<td style="text-align:center">73.55%</td>
+<td style="text-align:center">71.549%</td>
+<td style="text-align:center">71.57%</td>
+<td style="text-align:center">71.584%</td>
+<td style="text-align:center">65.15%</td>
 </tr>
 </tbody>
 </table>
@@ -8070,6 +8211,42 @@ We can check the first validation batch (32 images).</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h1 id="Conclusion">Conclusion<a class="anchor-link" href="#Conclusion">¶</a></h1><p>This project was an interesting first contact with segmentation and model compression.</p>
+<ul>
+<li>The design of a UNet tailored for the specificities of well imaging (circular azimuth, and very small 36x36) has allowed to achieve correct performances at segmenting corroded areas.</li>
+<li>It is possible to shrink the segmentation model down to a point where it can be stored on 550kB (for instance as part of the firmware binary).</li>
+<li>Generalization capabilities to unseen wells are probably not so great (as reflected by the score on the data challenge - I achieved a maximum of 66.24% score)...</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h1 id="Limitations-and-potential-improvements">Limitations and potential improvements<a class="anchor-link" href="#Limitations-and-potential-improvements">¶</a></h1><p>A lot of time during this project was spent on the "reboot" phase to find and correct a few issues mentioned at the begining.</p>
+<h4 id="Potential-improvements">Potential improvements<a class="anchor-link" href="#Potential-improvements">¶</a></h4><p>Here are some ideas for improvements:</p>
+<ul>
+<li>One important point is that we only have access to a tiny vertical windows and I guess that the relevance could be much improved if we'd treat larger vertical windows (corrosion areas seem to often look a lot like dark lines). Taking decisions near the vertical boundaries of the 36x36 image is much harder when you don't have a clue what's above or below.</li>
+<li>A mixture of experts could have been used (majority voting for several models)...to be later distilled into a smaller model.</li>
+<li>Hard Negative Mining: Once we get a first network, we could mine the difficult examples (evaluate the performances over all patches and sort the most difficult ones). In a second step, we can re-train the pretrained network on these hard patches.</li>
+</ul>
+<h4 id="Missing-elements">Missing elements<a class="anchor-link" href="#Missing-elements">¶</a></h4><p>Due to the time spent on the TP-5 lab session and project, here are some points <strong>I didn't have time to implement</strong>.</p>
+<ul>
+<li><del>"Dice Loss Bug": For some reason, I could not minimize the dice loss (1-dice coefficient). Don't know whether the loss is wrong or not.</del>  -&gt; fixed</li>
+<li>Extra augmentation by a bit of additive white gaussian noise, blur or sharpening, multiply the signals to slightly augment the dynamic range, add S curves to augment (increase/decrease contrast).</li>
+<li><del>perform an evaluation of the metrics per well (there may be more difficult wells).</del></li>
+<li>try the so called Focal Loss which is said to adapt the weight of the BCE kind of automatically.</li>
+<li>cross validation (take several split of the train, validation set and evaluate the average and standard deviation of the results for 1 experiment configuration). Could have been interesting to check generalization capabilities to totally unseen wells.</li>
+<li>(Not asked) effort to reduce the model memory footprint in RAM or execution time assessment</li>
+</ul>
+<h4 id="True-difficulties">True difficulties<a class="anchor-link" href="#True-difficulties">¶</a></h4><ul>
+<li>Very difficult to assess the quality of annotations. A toy example would be very nice (segment darker lines over various backgrounds).</li>
+<li><del>Not sure whether or not the validation loss starts increasing because of overfitting or basically that the validation set does not have the same distribution as the training set!</del>   -&gt; Re-done dataset split.</li>
+</ul>
 </div>
 </div>
 </div>

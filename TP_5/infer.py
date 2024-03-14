@@ -48,7 +48,7 @@ def inference_main(argv):
     device = DEVICE
     output_dir = Path(args.output_dir)
     for exp in args.exp:
-        model, dl_dict, config = load_model(exp, device=device, get_data_loaders_flag=False)
+        model, dl_dict, config = load_model(exp, device=device, get_data_loaders_flag=True)
         inference_dir = output_dir/(config[NAME]+"_inference")
         inference_dir.mkdir(exist_ok=True, parents=True)
         mode = args.mode
